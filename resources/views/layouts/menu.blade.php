@@ -20,9 +20,14 @@
 
        <a class="m1" href="<?php echo  url('/');?>/socios">
          <li class="animate">
-           Socios<i class="fas fa-user-circle float-right fa-3"></i>
+           Socios<i class="fas fa-user-circle float-right"></i>
          </li>
       </a>
+
+      <ul><a class="m1" href="<?php echo  url('/');?>/searchsocio">
+         <li class="subm"><i class="fa fa-search float-right"></i>Búsqueda del Socio</li></a>
+      </ul>
+
       <ul><a class="m1" href="<?php echo  url('/');?>/afiliacioncat">
          <li class="subm"><i class="fa fa-book float-right"></i>Catálogo Afiliación</li></a>
       </ul>
@@ -30,16 +35,13 @@
 
      <a class ="m2" href="<?php echo  url('/');?>/empresas">
        <li class="animate">
-          Empresas<i class="fa fa-user-circle-o float-right"></i>
+          Empresas<i class="fas fa-building float-right"></i>
        </li>
      </a>
-     <ul><a class="m2" href="<?php echo  url('/');?>/month">
-        <li class="subm"><i class="fa fa-calendar float-right"></i>Deuda</li></a>
-     </ul>
 
      <a class ="m3" href="<?php echo  url('/');?>/prestamos">
        <li class="animate">
-          Prestamos<i class="fa fa-money float-right"></i>
+          Prestamos<i class="fas fa-money-bill-alt float-right"></i>
        </li>
      </a>
      <ul><a class="m3" href="<?php echo  url('/');?>/comisiones">
@@ -48,19 +50,34 @@
 
      <a class ="m6" href="<?php echo  url('/');?>/ahorros">
        <li class="animate">
-          Ahorros<i class="fa fa-bitbucket float-right"></i>
+          Ahorros<i class="fab fa-bitbucket float-right"></i>
        </li>
      </a>
+     <ul><a class="m6" href="<?php echo  url('/');?>/ahorrotasas">
+        <li class="subm"><i class="fas fa-coffee float-right"></i>Tasas de ahorro</li></a>
+     </ul>
+
 
      <a class ="m7" href="<?php echo  url('/');?>/plazofijo">
        <li class="animate">
           Plazo Fijo<i class="fa fa-lock float-right"></i>
        </li>
      </a>
+     <ul><a class="m7" href="<?php echo  url('/');?>/plazoinactivo">
+        <li class="subm"><i class="far fa-calendar-times float-right"></i>Inactivos</li></a>
+     </ul>
+
+     <a class ="m2" href="<?php echo  url('/');?>/reportes">
+       <li class="animate">
+          Reportes<i class="fas fa-file-pdf float-right"></i>
+       </li>
+     </a>
 
      <a class="m5" href="<?php echo  url('/');?>/tasacambios">
         <li class="subm"><i class="fa fa-balance-scale float-right"></i>Tasa de Cambio</li>
     </a>
+
+
 
 
 

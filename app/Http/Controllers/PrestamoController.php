@@ -8,11 +8,14 @@ use Lupita\Prestamo;
 use Lupita\Prestamodetalle;
 use Lupita\Fiador;
 use Lupita\Socio;
+use Lupita\Empresa;
 use Lupita\Tasacambio;
 use Lupita\Comision;
 use Lupita\Cooperativa;
+use Lupita\Prestamopausa;
 use DB;
 use Barryvdh\DomPDF\Facade as PDF;
+use Carbon\Carbon;
 
 class PrestamoController extends Controller
 {
@@ -23,52 +26,221 @@ class PrestamoController extends Controller
      */
     public function index()
     {
-        $prestamo = Prestamo::where('activo', 1)->get();
-        return view('prestamos.prestamo',compact('prestamo'));
+
+       $prestamo = Prestamo::where('activo', 1)->paginate(10);
+
+       //DB::table('prestamos')->where('activo', 0)->update(['activo'=>1, 'pagado'=>0]);
+
+      return view('prestamos.prestamo',compact('prestamo'));
+
+    }
+
+    //Cartera por empresa
+    public function carteraemp()
+    {
+      $empresa = Empresa::get();
+      return view('prestamos.carteraemp',compact('empresa'));
+    }
+
+    public function carteraempcon(Request $request)
+    {
+       $id = $request->empresa;
+       $empresa = Empresa::find($id);
+
+       $hoy = date('Y-m-d');
+       $hoy = Carbon::parse($hoy);
+
+       $prestamo = DB::table('prestamos')
+      ->where('prestamos.activo', '=', 1)
+      ->join('socios', 'socios.id', '=', 'prestamos.socio_id')
+      ->join('empresas', 'empresas.id', '=', 'socios.empresa_id')
+      ->where('empresas.id', '=', $id)
+      ->select('prestamos.monto', 'prestamos.id','prestamos.vencimiento',
+       'empresas.nombre', 'socios.nombres', 'socios.apellidos')->get();
+
+       $c = 1;
+       foreach($prestamo as $pr){
+         $vencimiento = $pr->vencimiento;
+         $vencimiento = Carbon::parse($vencimiento);
+         $venc = $hoy->diff($vencimiento);
+         $venc = $venc->format('%a');
+
+         $cartera[] =  [ //cartera
+           'numero' => $c,
+           'nombre' => $pr->nombres,
+           'apellido' => $pr->apellidos,
+           'empresa' => $pr->nombre,
+           'monto' => $pr->monto,
+           'referencia' => $pr->id,
+           'vencimiento' => $pr->vencimiento,
+           'diasvencimiento' => $venc,
+         ];
+          $c= $c+1;
+       }
+
+       //dd($cartera);
+
+       $pdf = PDF::loadView('repcartera', ['cartera' => $cartera]);
+       return $pdf->stream('repcartera.pdf',array('Attachment'=>0));
+    }
+
+    public function pausa($id)
+    {
+        //dd($id);
+        $prestamo = Prestamo::find($id);
+        return view('prestamos.pausa')
+        ->with(['edit' => true, 'prestamo' => $prestamo]);
+    }
+
+    public function pausar(Request $request, $id)
+    {
+        //dd($request->cobrointere);
+        // Prestamo pausa
+        $prestamop = new Prestamopausa();
+        $prestamop->prestamo_id = $id;
+        $prestamop->cobrointere = $request->cobrointere;
+        $prestamop->save();
+
+        //actualiza el prestamo a pausa
+        $prestamo = Prestamo::find($id);
+        $prestamo->pausa=1; // Pasa a pausado la cuenta de ahorro
+        $prestamo->update();
+        return redirect('prestamos')->with('msj', 'Datos actualizados');
+    }
+
+    public function continuar(Request $request, $id)
+    {
+        $prestamo = Prestamo::find($id);
+        $prestamo->pausa=0; // Quita la pausa
+        $ultimapausa = Prestamopausa::where('prestamo_id', $id)->orderBy('id', 'desc')->first();//busca la ultima pausa que se hizo
+        $ultimapausa->activo=0;
+        $ultimapausa->update();
+        $prestamo->update();
+        return redirect('prestamos')->with('msj', 'Datos actualizados');
+    }
+
+    // Reporte de Cartera //
+    public function repcartera()
+    {
+        $hoy = date('Y-m-d');
+        $hoy = Carbon::parse($hoy);
+
+        $prestamo = Prestamo::where('activo', 1)->with('socio')->get()->sortBy(function($prestamo, $key)
+        {
+          return $prestamo->socio->empresa_id;
+        });
+
+        $c = 1;
+        foreach($prestamo as $pr){
+          $vencimiento = $pr->vencimiento;
+          $vencimiento = Carbon::parse($vencimiento);
+          $venc = $hoy->diff($vencimiento);
+          $venc = $venc->format('%a');
+
+          $cartera[] =  [ //cartera
+            'numero' => $c,
+            'nombre' => $pr->socio->nombres,
+            'apellido' => $pr->socio->apellidos,
+            'empresa' => $pr->socio->empresa->nombre,
+            'monto' => $pr->monto,
+            'referencia' => $pr->id,
+            'vencimiento' => $pr->vencimiento,
+            'diasvencimiento' => $venc,
+          ];
+           $c= $c+1;
+        }
+
+        $pdf = PDF::loadView('repcartera', ['cartera' => $cartera]);
+        return $pdf->stream('repcartera.pdf',array('Attachment'=>0));
+
+        //return view('prestamos.repcartera',compact('cartera'));
     }
 
     /*Prestamo quincenales*/
-
-    public function cronprestamoq()    //cronprestamoq
+    //cronprestamoq
+    public function cronprestamoq()    //
     {
         $now = \Carbon\Carbon::now();
         $prestamo = Prestamo::where('activo', 1)->where('mensual', 0)->get(); //Busca los prestamos que estan activos y su pago es quincenal
+        //dd($prestamo);
         $tasac = Tasacambio::where('activo', 1)->value('id');
         $cont = 0;
         foreach($prestamo as $pr){
           $id = $pr->id; // id del prestamo
+
+
           $ultimopago = Prestamodetalle::where('prestamo_id', $id)->orderBy('id', 'desc')->first(); // obtener el ultimo pago del prestamo
-          $porcom = ($pr->comision->valor)/100; //porcentaje de comision
+
+
+          if($pr->comision_id != null){
+           $porcom = ($pr->comision->valor)/100; //porcentaje de comision
+           $comision = $pr->monto * $porcom; //comision
+         } else{
+           $comision = 0;
+         }
 
           if(empty($ultimopago)){ //si aun no se han hecho pagos al prestamo
             $hoy = date('Y-m-d'); //dd($pr->fechainicio);
-            if($hoy == $pr->fechainicio){ //si hoy es la fecha de inicio
-              //dd($pr->fechainicio);
-              $comision = $pr->monto * $porcom; //comision
+          //  if($hoy >= $pr->fechainicio){ //si hoy es la fecha de inicio
               $saldo = $pr->monto + $comision;
               $interes = number_format($interes = $saldo * 0.01, 2);
-              $principal = number_format($principal = $pr->cuota - $interes, 2);
-              $saldoactual = number_format($saldoactual = $saldo - $principal, 2);
               $numcuota = 1; $cont= $cont+1;
-              $cuotafinal = 0;
-            }
-          } else {
+              if($numcuota == $pr->cantcuotas){ //si ya llego a su ultima cuota
+                  $principal = $pr->monto;
+                  $cuotafinal = 1;
+                  $saldoactual = 0;
+               } else{
+                 $principal = $pr->cuota - $interes;
+                 $cuotafinal = 0;
+                 $saldoactual = $saldo - $principal;
+               }
+
+          /*  } else{ // no es hoy la fecha de inicio
+               $cont = 0;
+            } */
+          } else { // ya se han realizado pagos
               $cont = $cont+1;
               $numcuota = $ultimopago->numcuota+1;
-              $comision = $pr->monto * $porcom; //comision
               $interes = number_format($interes = $ultimopago->saldo * 0.01, 2);
               if($numcuota == $pr->cantcuotas){ //si ya llego a su ultima cuota
                   $principal = $ultimopago->saldo;
                   $cuotafinal = 1;
                } else{
-                 $principal = number_format($principal = $pr->cuota - $interes, 2);
+                 $principal = $pr->cuota - $interes;
                  $cuotafinal = 0;
                }
               $saldo = $ultimopago->saldo - $principal;
-              $saldoactual = number_format($saldoactual = $ultimopago->saldo - $principal, 2);
+              $saldoactual = $ultimopago->saldo - $principal;
+        }
+
+        /*Si esta en pausa */
+        if($pr->pausa == 1){
+          $prpausa = Prestamopausa::where('prestamo_id', $id)->where('activo', 1)->orderBy('id', 'desc')->first();//busca el prestamo pausa
+          if($prpausa->cobrointere == 0)
+          {
+            $interes = 0;
+            if(empty($ultimopago)){// si no hay ultimo pago
+              $saldoactual = $pr->monto;
+              $numcuota = 0;
+            } else {
+            $saldoactual = $ultimopago->saldo;
+            $numcuota = 0;
+           }
+
+          } else{
+            if(empty($ultimopago)){// si no hay ultimo pago
+              $saldoactual = $pr->monto + $interes;
+              $numcuota = 0;
+            } else{
+              $saldoactual = $ultimopago->saldo + $interes;
+              $numcuota = 0;
+            }
           }
+          $principal = 0;
+        }
 
          if($cont != 0){
+
           $pagos[] =  [
             'prestamo_id' => $pr->id,
             'tasacambio_id' => $tasac,
@@ -80,23 +252,25 @@ class PrestamoController extends Controller
             'updated_at' => $now,
           ];
 
-          if($cuotafinal == 1){
-            $prestamoupdate = Prestamo::find($id);
-            $prestamoupdate->pagado=1; // Pasa a pagado el prestamo
-            $prestamoupdate->activo=0; // pasa a inactivo el prestamo
-            $prestamoupdate->update();
-          }
-
          }
 
-       }
+         if($cuotafinal == 1){
+           $prestamoupdate = Prestamo::find($id);
+           $prestamoupdate->pagado=1; // Pasa a pagado el prestamo
+           $prestamoupdate->activo=0; // pasa a inactivo el prestamo
+           $prestamoupdate->update();
+         }
 
-        if($cont != 0){
+       } //dd($pagos);
+
+        if(!empty($pagos)){
+          //dd($pagos);
           Prestamodetalle::insert($pagos);
         }
     }
 
     /*Prestamo que se cobran mensualmente*/
+    //cronprestamom
     public function cronprestamom() //
     {    //dd(date('d'));
         $now = \Carbon\Carbon::now();
@@ -111,34 +285,67 @@ class PrestamoController extends Controller
         foreach($prestamo as $pr){
           $id = $pr->id; // id del prestamo
           $ultimopago = Prestamodetalle::where('prestamo_id', $id)->orderBy('id', 'desc')->first(); // obtener el ultimo pago del prestamo
-          $porcom = ($pr->comision->valor)/100; //porcentaje de comision
+          if($pr->comision_id != null){
+           $porcom = ($pr->comision->valor)/100; //porcentaje de comision
+           $comision = $pr->monto * $porcom; //comision
+          } else {
+           $comision = 0;
+          }
 
           if(empty($ultimopago)){ //si aun no se han hecho pagos al prestamo
             $hoy = date('Y-m-d'); //dd($pr->fechainicio);
-            if($hoy == $pr->fechainicio){ //si hoy es la fecha de inicio
+        //    if($hoy >= $pr->fechainicio){ //si hoy es la fecha de inicio
               //dd($pr->fechainicio);
-              $comision = $pr->monto * $porcom; //comision
-              $saldo = $pr->monto + $comision;
+              $saldo = $pr->monto + $comision; //saldo anterior
               $interes = number_format($interes = $saldo * 0.02, 2);
-              $principal = number_format($principal = $pr->cuota - $interes, 2);
-              $saldoactual = number_format($saldoactual = $saldo - $principal, 2);
+              //$principal = number_format($principal = $pr->cuota - $interes, 2);
+              $principal = $pr->cuota - $interes;
+              $saldoactual = $saldo - $principal;
+              //dd($principal);
               $numcuota = 1; $cont= $cont+1;
               $cuotafinal = 0;
-            }
+      /*      } else { // hoy no es la fecha de inicio
+              $cont = 0;
+            }*/
           } else {
               $cont = $cont+1;
               $numcuota = $ultimopago->numcuota+1;
-              $comision = $pr->monto * $porcom; //comision
               $interes = number_format($interes = $ultimopago->saldo * 0.02, 2);
               if($numcuota == $pr->cantcuotas){ //si ya llego a su ultima cuota
                   $principal = $ultimopago->saldo;
                   $cuotafinal = 1;
                } else{
-                 $principal = number_format($principal = $pr->cuota - $interes, 2);
+                 $principal = $pr->cuota - $interes;
                  $cuotafinal = 0;
                }
               $saldo = $ultimopago->saldo - $principal;
-              $saldoactual = number_format($saldoactual = $ultimopago->saldo - $principal, 2);
+              $saldoactual = $ultimopago->saldo - $principal;
+          }
+
+          /*Si esta en pausa */
+          if($pr->pausa == 1){
+            $prpausa = Prestamopausa::where('prestamo_id', $id)->where('activo', 1)->orderBy('id', 'desc')->first();//busca el prestamo pausa
+            if($prpausa->cobrointere == 0)
+            {
+              $interes = 0;
+              if(empty($ultimopago)){// si no hay ultimo pago
+                $saldo = $pr->monto;
+                $numcuota = 0;
+              } else {
+              $saldo = $ultimopago->saldo;
+              $numcuota = $ultimopago->cuota;
+             }
+
+            } else{
+              if(empty($ultimopago)){// si no hay ultimo pago
+                $saldo = $pr->monto + $interes;
+                $numcuota = 0;
+              } else{
+                $saldo = $ultimopago->saldo + $interes;
+                $numcuota = $ultimopago->cuota;
+              }
+            }
+            $principal = 0;
           }
 
           if($cont != 0){
@@ -164,7 +371,9 @@ class PrestamoController extends Controller
 
        } //dd($pagos);
 
-        if($cont != 0){
+       //dd($pagos);
+
+        if(!empty($pagos)){
           Prestamodetalle::insert($pagos);
         }
 
@@ -177,11 +386,19 @@ class PrestamoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create() 
+    public function create()
     {
+
         $monto = Input::has('monto') ? Input::get('monto') : null;
         $plazo = Input::has('plazo') ? Input::get('plazo') : null;
         $corte = Input::has('corte') ? Input::get('corte') : null;
+        $comisioon = Input::has('coomision') ? Input::get('coomision') : null;
+
+        // Validacion de plazo
+        if($plazo > 12){
+          return back()->with('errormsj', 'Los datos no se guardaron');
+        }
+
 
         $unoaseis = Comision::where('nombre', '1 a 6')->where('activo', 1)->value('id');
         $unoaseis = Comision::find($unoaseis);
@@ -200,7 +417,7 @@ class PrestamoController extends Controller
 
 
         if($plazo != null)  {
-
+          if($comisioon == 1) { // si se aplicara comision
               if($plazo <= 6){
                  $comision = $monto * $unoaseisv;
                  $comisionid = $unoaseis->id;
@@ -211,6 +428,10 @@ class PrestamoController extends Controller
                  $comision = $monto * $nueveadocev;
                  $comisionid = $nueveadoce->id;
               }
+          } else{ // no hay comision
+            $comision = 0;
+            $comisionid = null;
+          }
 
               if($corte == 0){ // si el corte es quincenal
 
@@ -236,6 +457,7 @@ class PrestamoController extends Controller
            $cuota2 = 0; $cquincenal = 0; $comision = 0;
         } //dd($cuota2);
 
+
         $socio = Socio::where('activo', 1)->get();
         return view('prestamos.create',compact('socio', 'cuota2', 'cquincenal', 'comision', 'comisionid'));
     }
@@ -248,6 +470,31 @@ class PrestamoController extends Controller
      */
     public function store(Request $request)
     {  //dd($request->all());
+
+        /* Validaciones */
+
+        // Validaciones
+         $validatedData = $request->validate([
+           'monto' => 'required',
+           'plazo' => 'required',
+           'corte' => 'required',
+           'nombresocio' => 'required',
+         ],
+
+         [
+           'monto.required' => 'El campo monto es requerido',
+           'plazo.required' => 'El campo plazo es requerido',
+           'corte.required' => 'El campo corte es requerido',
+           'nombresocio.required' => 'El campo socio es requerido',
+         ]
+
+        );
+
+        $sc = $request->nombresocio;
+        $socio_id = filter_var($sc, FILTER_SANITIZE_NUMBER_INT); //obtiene el id del socio
+
+      //  dd($request->nombresocio);
+
         if(!empty($request->fiador_id)){   // si se selecciono a alguien para ser fiador
 
             $fiador_id = Fiador::where('socio_id', $request->fiador_id)->value('id'); // busca la existencia del fiador
@@ -270,57 +517,92 @@ class PrestamoController extends Controller
             $año = date('Y');
             $fechainicio = 0;
           //  $fecha = date('dmy');
-         if($request->corte == 0){
-            if($dia > 10 && $dia <= 25){
-              $dia = 30;
-            } elseif($dia <= 10){
-              $dia = 15;
-            } elseif($dia>25 && $mes < 12){
+         if($request->corte == 0){ // si es quincenal
+            if($dia >= 10 && $dia < 25){ // dia mayor o igual a 10 y menor a 25
+              $dia = 30; // el primer dia sera 30
+            } elseif($dia < 10){ // dia menor a 10
+              $dia = 15; // el primer dia sera 15
+            } elseif($dia>=25 && $mes < 12){ //dia mayor a 25 y mes menor a 12
               $dia = 15; $mes = $mes + 1;
-            } elseif($dia >25 && $mes == 12){
+            } elseif($dia >=25 && $mes == 12){ // dia mayor a 25 y mes igual a 12
               $dia = 15; $mes = 1; $año = $año + 1;
             }
             if($mes == 2 && $dia == 30){ //si es febrero
               $dia = 28;
             }
             $fechainicio = $año . "-" . $mes . "-" . $dia;
-         } else {
-              if($request->pmensual == 15){ //dd($request->pmensual);
-                 if($dia <= 10){
+         } else { // es mensual
+              if($request->pmensual == 15){ //el corte es los 15
+                 if($dia < 10){ // dia menor a 10 se cobra el 15
                   $fechainicio = $año . "-" . $mes . "-" . 15;
-                }elseif($dia > 10 && $mes <= 11) {
+                }elseif($dia >= 10 && $mes <= 11) { //dia mayor o igual a 10 y mes menor o igual a 11
                   $mes = $mes + 1;
                   $fechainicio = $año . "-" . $mes . "-" . 15;
                 } else{
-                  $mes = 01; $año = $año + 1;
+                  $mes = 01; $año = $año + 1; //sera para el prox año
                   $fechainicio = $año . "-" . $mes . "-" . 15;
                 }
-             } elseif($request->pmensual == 30) {
-                 if($dia <= 25){
+             } elseif($request->pmensual == 30) { //el corte es los 30
+                 if($dia < 25){ // dia menor a 25
                    if($mes != 2){
                      $fechainicio = $año . "-" . $mes . "-" . 30;
-                   } else {
+                   } else { // es febrero
                      $fechainicio = $año . "-" . $mes . "-" . 28;
                    }
-                }elseif($dia > 25 && $mes <= 11) {
+                }elseif($dia >= 25 && $mes <= 11) { // dia mayor o igual a 25 y mes menor o igual a 11
                   $mes = $mes + 1;
                   if($mes != 2){
                     $fechainicio = $año . "-" . $mes . "-" . 30;
-                  } else {
+                  } else { // es febrero
                     $fechainicio = $año . "-" . $mes . "-" . 28;
                   }
-                } else{
+                } else{ // sera el prox año
                   $mes = 01; $año = $año + 1;
                   $fechainicio = $año . "-" . $mes . "-" . 30;
                 }
               }
         }
 
-        //  dd($fechainicio);
+        //dd($fechainicio);
+        $cantcuota = $request->cantcuotas;
+        $corte = $request->corte; // si sera quincenal o mensual
+        if($corte == 0){ // no es mensual
+          $i = 2;
+          $fecha = $fechainicio;
+          while($i <= $cantcuota) {
+            $fecha = strtotime('+15 day', strtotime($fecha));
+            $fecha = (date('Y-m-d', $fecha));
+            $i++;
+          }
+        } else { // es mensual
+          $cc = $cantcuota-1;
+          $fecha = strtotime('+'.$cc.'month', strtotime($fechainicio));
+          $fecha = (date('Y-m-d', $fecha));
+        }
+
+        $vencimiento =  $fecha;
+        //dd($vencimiento);
+
+        // pasa los dias a 15 o 30
+        $vencimiento = explode('-', $vencimiento);
+
+        if($vencimiento[2] > 15 && $vencimiento[1] != 02){
+          $vencimiento[2] = '30'; //
+        }elseif($vencimiento[2] > 15 && $vencimiento[1] == 02){
+          $vencimiento[2] = '28';
+        }else{
+          $vencimiento[2] = '15';
+        }
+
+        //dd($vencimiento);
+
+        $vencimiento = implode('-', $vencimiento); // agrega el dia indicado 15 o 30
+
+        //dd($vencimiento);
 
         //----------  Guarda el prestamo -------------
         $prestamo = new Prestamo();
-        $prestamo->socio_id = $request->socio_id;
+        $prestamo->socio_id = $socio_id;
         $prestamo->monto = $request->monto;
         $prestamo->plazo = $request->plazo;
         $prestamo->cuota = $request->cuota;
@@ -328,6 +610,7 @@ class PrestamoController extends Controller
         $prestamo->cantcuotas = $request->cantcuotas;
         $prestamo->comision_id = $request->comision_id;
         $prestamo->mensual = $request->corte;
+        $prestamo->vencimiento = $vencimiento;
         $prestamo->pmensual = $request->pmensual;
         $prestamo->fechainicio = $fechainicio;
         $prestamo->parentescof = $request->parentescof;
@@ -375,13 +658,16 @@ class PrestamoController extends Controller
             $date = $prestamo->fechainicio;
 
             $dia = date("d", strtotime($date));
-            $mes = date("m", strtotime($date));
+            $mes = date("n");
             $año = date("Y", strtotime($date));//dd($año);
 
-
-            $porcom = ($prestamo->comision->valor)/100; //porcentaje de comision
-
-            $comision = $prestamo->monto * $porcom;
+            if($prestamo->comision != null){
+              $porcom = ($prestamo->comision->valor)/100; //porcentaje de comision
+              $comision = $prestamo->monto * $porcom;
+            } else{
+              $porcom = 0;
+              $comision = 0;
+            }
 
             $saldo = $prestamo->monto + $comision;
             $interes = $prestamo->interes;
@@ -638,6 +924,29 @@ class PrestamoController extends Controller
           return $pdf->stream('contractom.pdf',array('Attachment'=>0));
 
         }
+    }
+
+    /** Mostrar Movimientos */
+
+    public function movimiento(Request $request, $id)
+    {
+        $mov = Prestamodetalle::where('prestamo_id', $id)->get(); //dd($mov);
+        $prestamo = Prestamo::find($id);
+        return view('prestamos.movimiento',compact('mov', 'prestamo'));
+
+    }
+
+    /**Reporte de prestamo */
+
+    public function repprestamo(Request $request, $id)
+    {
+        $mov = Prestamodetalle::where('prestamo_id', $id)->orderBy('id', 'desc')->limit(20)->get(); //dd($mov);
+        $mov = $mov->sortBy('id');//los ordena ascendentemente
+        $prestamo = Prestamo::find($id);
+
+        $pdf = PDF::loadView('repprestamo', ['mov' => $mov, 'prestamo' => $prestamo]);
+        return $pdf->stream('repprestamo.pdf',array('Attachment'=>0));
+
     }
 
     /**

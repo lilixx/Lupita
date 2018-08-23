@@ -17,7 +17,13 @@
    <h1 class="titulo pais"> Ahorros </h1>
 
   <a href="ahorros/create" class="btn btn-info">
-    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Agregar</a>
+    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Agregar Normal</a>
+
+  <a href="/ahorrocreatespecial" class="btn btn-edit">
+    <span class="fas fa-star" aria-hidden="true"></span> Agregar Especial</a>
+
+    <a href="/ahorrocreateadelanto" class="btn btn-rose">
+      <span class="fas fa-hand-point-right" aria-hidden="true"></span> Ahorro Iniciado</a>
 
 @include('ahorros.tbl')
 

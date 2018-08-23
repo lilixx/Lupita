@@ -158,8 +158,8 @@ Forma de Pago de Intereses: <br>
 
 <div class="col1_of_4">
 {{$plazo->monto}} <br>
-{{$plazo->interesven}} <br>
-{{$montven = $plazo->monto + $plazo->interesven}}<br>
+{{$plazo->intereses}} <br>
+{{$montven = $plazo->monto + $plazo->intereses}}<br>
 {{$plazo->frecpagointere->nombre}}<br>
 {{$plazo->formapagointere->nombre}}<br>
 </div>
@@ -200,7 +200,7 @@ Firma Autorizada
      </tr>
      <tr>
        <td class="tg-031e">Intereses Vencimiento</td>
-       <td class="tg-031e">${{$plazo->interesven}} </td>
+       <td class="tg-031e">${{$plazo->intereses}} </td>
      </tr>
      <tr>
        <td class="tg-031e">Retención IR</td>
@@ -208,7 +208,7 @@ Firma Autorizada
      </tr>
      <tr>
        <td class="tg-031e">Total a Recibir</td>
-       <td class="tg-031e">${{$totalrec=$plazo->monto + $plazo->interesven - $plazo->ir}}</td>
+       <td class="tg-031e">${{$totalrec=$plazo->monto + $plazo->intereses - $plazo->ir}}</td>
      </tr>
    </table>
 

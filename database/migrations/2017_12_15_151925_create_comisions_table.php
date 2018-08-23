@@ -16,7 +16,7 @@ class CreateComisionsTable extends Migration
         Schema::create('comisions', function (Blueprint $table) {
             $table->increments('id');
             $table->string('nombre', 10);
-            $table->integer('valor');
+            $table->float('valor');
             $table->boolean('activo')->default(1);
             $table->timestamps();
         });

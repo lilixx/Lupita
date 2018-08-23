@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Lupita\Socio;
 use Lupita\Ahorro;
 use Lupita\Ahorrodetalle;
+use Lupita\Ahorrotasa;
 use Lupita\Beneficiario;
 use Lupita\Tasacambio;
 use Carbon\Carbon;
@@ -43,8 +44,23 @@ class AhorroController extends Controller
      public function create()
     {
         $socio = Socio::where('activo', 1)->get();
-        return view('ahorros.create',compact('socio'));
+        $ahorrotasa = Ahorrotasa::where('especial', 0)->get();
+        return view('ahorros.create',compact('socio', 'ahorrotasa'));
     }
+
+    public function createspecial()
+   {
+       $socio = Socio::where('activo', 1)->get();
+       $ahorrotasa = Ahorrotasa::where('especial', 1)->get();
+       return view('ahorros.createspecial',compact('socio', 'ahorrotasa'));
+   }
+
+   public function createadelanto()
+  {
+      $socio = Socio::where('activo', 1)->get();
+      $ahorrotasa = Ahorrotasa::where('especial', 1)->get();
+      return view('ahorros.createadelanto',compact('socio', 'ahorrotasa'));
+  }
 
     public function repch($id)
     {
@@ -55,13 +71,15 @@ class AhorroController extends Controller
         return $pdf->stream('repch.pdf',array('Attachment'=>0));
     }
 
+    //
     public function cronahorrom() //
     {
       $hoy = date('Y-m-d'); //fecha de hoy
       $ahorro = Ahorro::where('activo', '=', 1)->where('dia30', '!=', 0)
       ->where('dia30', '!=', null)->where('fechainicio', '<=', $hoy)->get(); //busca los ahorros activos, dia30 diferente a 0 y que ya hayan iniciado o inicien hoy
-       //dd($ahorro);
-      $tasac = Tasacambio::where('activo', 1)->value('valor'); // tasa de cambio
+
+      $ahorro = Ahorro::where('activo', '=', 1)->where('fechainicio', '<=', $hoy)->get();//busca los ahorros activos,que ya hayan iniciado o inicien hoy
+
       $now = \Carbon\Carbon::now();
       //dd($tasac);
 
@@ -69,11 +87,13 @@ class AhorroController extends Controller
       $lastdaym = date("Y-m-d", strtotime("last day of this month") ) ; //obtengo el ultimo dia del mes
       $firstdaym = date("Y-m-d", strtotime("first day of this month") ) ;//obtengo el primer dia del mes
       //dd($ahorro);
-      foreach($ahorro as $ah){ //recorre todos los ahorros
-          $id = $ah->id;
+      foreach($ahorro as $ah){ //recorre los ahorros que se hacen cargos el dia 30
+
+          $id = $ah->id;//id del ahorro
+          $tasa = $ah->ahorrotasa->valor/100;
           $ultimomov = Ahorrodetalle::where('ahorro_id', '=', $id)->where('fecha', '=', $lastmonth)->orderBy('id', 'desc')->first(); //ultimo datos del mes anterior
 
-          $movmesactual = Ahorrodetalle::where('ahorro_id', '=', $id)->where('fecha', '>=', $firstdaym)->where('fecha', '<=', $lastdaym)->get(); //mov del mes actualizados
+          $movmesactual = Ahorrodetalle::where('ahorro_id', '=', $id)->where('fecha', '>=', $firstdaym)->where('fecha', '<=', $lastdaym)->get(); //mov del mes actual
           $lastmovmesactual = Ahorrodetalle::where('ahorro_id', '=', $id)->where('fecha', '>=', $firstdaym)->where('fecha', '<=', $lastdaym)->orderBy('id', 'desc')->first();//ultimo mov del mes actual
           $cantmovactual = Ahorrodetalle::where('ahorro_id', '=', $id)->where('fecha', '>=', $firstdaym)->where('fecha', '<=', $lastdaym)->count();//cant de mov del mes
           $cont = 1; $promedio = 0; $interes = 0; $final = 0; $retencion = 0; $lastmov = 0; $deposito = 0;
@@ -97,7 +117,7 @@ class AhorroController extends Controller
                   $interval = $fecha->diff($fechant);
                   $cantd = $interval->format('%a');//dd($cantd);
                   $saldofinalant = $ultimomov->saldofinal;
-                  $cal = $saldofinalant * 0.05/365*$cantd; //dd($cal);
+                  $cal = $saldofinalant * $tasa/365*$cantd; //dd($cal);
                   $saldofinalant = $mov->saldofinal; //dd($cal);
                   $fechant = $mov->fecha;
                   $fechant = Carbon::parse($fechant);
@@ -106,7 +126,7 @@ class AhorroController extends Controller
               if($cont >= 2){
                 $interval = $fecha->diff($fechant);
                 $cantd = $interval->format('%a');
-                $cal = $saldofinalant * 0.05/365*$cantd;
+                $cal = $saldofinalant * $tasa/365*$cantd;
                 $fechant = $mov->fecha; //se guarda la fecha actual como fecha anterior
                 $fechant = Carbon::parse($fechant);
                 $saldofinalant = $mov->saldofinal; //se guarda el saldo como saldo anterior
@@ -119,14 +139,15 @@ class AhorroController extends Controller
                 $fechah =  Carbon::parse($hoy); //fecha de hoy
                 $interval = $fechah->diff($fechant);
                 $cantd = $interval->format('%a');
-                $final = $saldofinalant * 0.05/365*$cantd; //dd($cal);
+                $final = $saldofinalant * $tasa/365*$cantd; //dd($cal);
               }
               $interes = $cal + $interes;
               $cont = $cont + 1;
 
 
-          } //dd($lastmovmesactual->saldofinal);
+          } //fin de recorrer los movimientos del mes
 
+          //Ultimo movimiento
           $ultimomovah = Ahorrodetalle::where('ahorro_id', '=', $id)->orderBy('id', 'desc')->first(); // busca el ultimo movimiento
           //dd($ultimomovah);
           if(!empty($ultimomovah)){ // si existen movimientos en la cuenta
@@ -143,35 +164,40 @@ class AhorroController extends Controller
                       $fechant = Carbon::parse($fechant);
                       $interval = $fechah->diff($fechant);
                       $cantd = $interval->format('%a');
-                      $interes = $ultimomovah->saldofinal * 0.05/365*$cantd;
+                      $interes = $ultimomovah->saldofinal * $tasa/365*$cantd;
                       $interes = number_format($interes, 2);
                       $retencion = number_format($interes * 0.1, 2);
                     }
               }
            }
 
-           if($ah->pausada == 0){ // si no esta pausada
+           //dd($interes);
+           //dd($cantd);
+
+           if($ah->pausada == 0 && $ah->dia30 != null){ // si no esta pausada y los dias 30 se hace deposito
              $deposito = $ah->dia30;
+             $saldep= $lastmov + $deposito ; //saldo final del deposito
              if($ah->dolar == 0){ //si el ahorro es en cordoba
+               $tasac = Tasacambio::where('activo', 1)->value('valor'); // tasa de cambio
                $deposito = number_format($deposito / $tasac, 2);
              }
-           }  //dd($lastmov);
+             $ahorrodet[] =  [ //deposito
+               'ahorro_id' => $ah->id,
+               'concepto_id' => 1,
+               'rock_ck' => 'Planilla',
+               'debitos' => 0,
+               'creditos' => $deposito,
+               'saldofinal' => $saldep,
+               'fecha' => $hoy,
+               'created_at' => $now,
+               'updated_at' => $now,
+             ];
+           } else { // Esta pausada
+            $saldep = $lastmov;
+           }
 
-            $saldep= $lastmov + $deposito ; //saldo final del deposito
             $saldint = $saldep + $interes; // saldo final de interes
             $saldret = $saldint - $retencion; // saldo final de retencion
-
-            $ahorrodet[] =  [ //deposito
-              'ahorro_id' => $ah->id,
-              'concepto_id' => 1,
-              'rock_ck' => 'Planilla',
-              'debitos' => 0,
-              'creditos' => $deposito,
-              'saldofinal' => $saldep,
-              'fecha' => $hoy,
-              'created_at' => $now,
-              'updated_at' => $now,
-            ];
 
             $ahorrodet[] =  [ //interes
               'ahorro_id' => $ah->id,
@@ -185,6 +211,7 @@ class AhorroController extends Controller
               'updated_at' => $now,
             ];
 
+           if($ah->retencion == 1) {
             $ahorrodet[] =  [ //IR
               'ahorro_id' => $ah->id,
               'concepto_id' => 4,
@@ -196,14 +223,15 @@ class AhorroController extends Controller
               'created_at' => $now,
               'updated_at' => $now,
             ];
+          }
 
-
-      } //dd($ahorrodet);
+      }
 
        Ahorrodetalle::insert($ahorrodet); // guarda en ahorro detalle
 
     }
 
+    //cronahorroq
     public function cronahorroq()
     {
       $hoy = date('Y-m-d'); //fecha de hoy
@@ -214,11 +242,15 @@ class AhorroController extends Controller
       ->where('dia15', '!=', null)->where('fechainicio', '<=', $hoy)->get(); //busca los ahorros activos, no pausados con deposito dia 15
 
       foreach($ahorro as $ah){
+      if($ah->pausada == 0){ // la cuenta no esta pausada
         $id = $ah->id;
         $lastmov = Ahorrodetalle::where('ahorro_id', '=', $id)->orderBy('id', 'desc')->first();//busca los movimientos
-        if($ah->pausada == 0){
+
           $credito = $ah->dia15;
-        }
+          if($ah->dolar == 0) { // la deduccion es en cordoba
+            $tasa = Tasacambio::where('activo', 1)->first()->valor;
+            $credito = number_format($credito/$tasa, 2);
+          }
 
         if(empty($lastmov)){//es una cuenta nueva
            $saldofinal = $credito;
@@ -237,15 +269,20 @@ class AhorroController extends Controller
           'updated_at' => $now,
         ];
       }
+     }
+       //dd($ahorrodet);
        Ahorrodetalle::insert($ahorrodet); // guarda en ahorro detalle
     }
 
     public function movimiento($id)
     {
-      //$socio = Socio::where('activo', 1)->get();
-      //dd($socio);
-      $ahorroid = $id; //dd($ahorroid);
-      return view('ahorros.movimiento', compact('ahorroid'));
+        $ahorroid = $id; //dd($ahorroid);
+        $ahorro = Ahorro::find($id); //busca el ahorro
+        if($ahorro->activo == 1) {
+          return view('ahorros.movimiento', compact('ahorroid'));
+        } else {
+           abort(404);
+        }
     }
 
     public function pausar(Request $request, $id)
@@ -274,7 +311,32 @@ class AhorroController extends Controller
      */
     public function store(Request $request)
     {
-        //dd($request->all());
+         // Validaciones
+         $validatedData = $request->validate([
+             'nombresocio' => 'required',
+             'dolar' => 'required',
+             'fechainicio' => 'required',
+             'beneficiario' => 'required_without:nombreben',
+             'nombreben' => 'required_without:beneficiario',
+             'apellidoben' => 'required_without:beneficiario',
+             'cedulaben' => 'required_without:beneficiario',
+             'dia15' => 'required_without:dia30',
+             'dia30' => 'required_without:dia15',
+           ],
+
+         [
+           'nombresocio.required' => 'El campo nombres del socio requerido',
+           'dolar.required' => 'El campo tipo cuenta de ahorro es requerido',
+           'fechainicio.required' => 'El campo fecha de inicio es requerido',
+           'beneficiario.required_without' => 'Debe indicar el beneficiario',
+           'nombreben.required_without' => 'Debe indicar el beneficiario',
+           'apellidoben.required_without' => 'Debe ingresar los apellidos del beneficiario',
+           'cedulaben.required_without' => 'Debe ingresar el num. de cedula del beneficiario',
+           'dia15.required_without' => 'Debe indicar almenos un dia a deducir',
+           'dia30.required_without' => 'Debe indicar almenos un dia a deducir',
+         ]
+
+        );
 
         $sc = $request->nombresocio;
         $socio_id = filter_var($sc, FILTER_SANITIZE_NUMBER_INT); //obtiene el id del socio
@@ -287,7 +349,9 @@ class AhorroController extends Controller
         $ahorro->dia30 = $request->dia30;
         $ahorro->depositoinicial = $request->depositoinicial;
         $ahorro->dolar = $request->dolar;
+        $ahorro->especial = $request->especial;
         $ahorro->comentario = $request->comentario;
+        $ahorro->ahorrotasa_id = $request->ahorrotasa_id;
 
         if ($request->nombreben == null) { // el beneficiario ya existia
           $ben = $request->beneficiario;

@@ -194,7 +194,7 @@
       <td class="tg-baqh">@if ($i == 1)
         {{$dia}} @elseif($mes == 2 && $dia == 15) {{$dia = 28}} @elseif($dia == 30 || $dia == 28) {{$dia = 15}} @elseif($dia == 15 && $mes != 2) {{$dia = 30}} @endif </td>
       <td class="tg-yw4l">@if ($i == 1){{$mes}} @elseif($mes > 12) {{$mes = 1}} @elseif($mes <= 12) {{$mes}} @endif</td>
-      <td class="tg-yw4l">@if($mes == 1 && $i > 2){{$año = $año + 1}} @else {{$año}} @endif</td>
+      <td class="tg-yw4l">@if($mes == 1 && $dia == 15){{$año = $año + 1}} @else {{$año}} @endif</td>
     </tr>
     <div style ="display:none;">{{$i = $i+1}}</div>
 @endwhile

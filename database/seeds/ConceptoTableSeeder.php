@@ -17,6 +17,7 @@ class ConceptoTableSeeder extends Seeder
            array('nombre' => 'Intereses'),
            array('nombre' => 'Retencion IR'),
            array('nombre' => 'N/D'),
+           array('nombre' => 'N/C Int CDPF'),
         ));
     }
 }

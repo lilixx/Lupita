@@ -18,7 +18,8 @@ class CreateCarteradetallesTable extends Migration
             $table->integer('cartera_id')->unsigned();
             $table->foreign('cartera_id')->references('id')->on('carteras');
             $table->float('abono');
-            $table->float('saldo'); 
+            $table->float('saldo');
+            $table->string('recibo', 30);
             $table->timestamps();
         });
     }

@@ -31,6 +31,16 @@
 
  <h1 class="titulo"> Crear Cuenta de Ahorro </h1>
 
+ @if (count($errors) > 0)
+   <div class="alert alert-danger">
+       <ul>
+           @foreach ($errors->all() as $error)
+               <li>{{ $error }}</li>
+           @endforeach
+       </ul>
+   </div>
+@endif
+
  <div class="steps">
   <input id="step_1" type="radio" name="steps" checked="checked"/>
   <label class="step" for="step_1" data-title="Socio"><span>1</span></label>
@@ -54,12 +64,29 @@
                </div>
              </div>
 
+             <input type="hidden" name="formapagointere_id" value="1">
+
+             <input type="hidden" name="especial" value="0"> 
+
+             <div class="col-lg-6">
+               <div class="form-group">
+                 <label for="titulo" class="col-sm-4 control-label">Tasa - ahorro</label>
+                 <div class="col-sm-8">
+                   <select  class="form-control input-sm" name="ahorrotasa_id">
+                      @foreach ($ahorrotasa as $at)
+                        <option value="{{$at->id}}">{{$at->valor}}%</option>
+                      @endforeach
+                     </select>
+                 </div>
+               </div>
+             </div>
+
               <div class="col-lg-6">
                  <div class="form-group">
-                   <label for="titulo" class="col-sm-4 control-label">Tipo de Cuenta de Ahorro</label>
+                   <label for="titulo" class="col-sm-4 control-label">Deducción </label>
                    <div class="col-sm-8">
                      <select name="dolar" class="form-control" name="dolar">
-                        <option value="0" selected="true" disabled="true">Tipo de cuenta de ahorro</option>
+                        <option value="0" selected="true" disabled="true">seleccione el tipo de deducción</option>
                           <option value="0">Córdoba</option>
                           <option value="1">Dólar</option>
                       </select>
@@ -177,7 +204,7 @@
     <div class="form-group">
       <label for="titulo" class="col-sm-4 control-label">Parentesco</label>
       <div class="col-sm-8">
-        <input type="text" class="form-control" name="parentescoben"  placeholder="cédula">
+        <input type="text" class="form-control" name="parentescoben"  placeholder="parentesco">
       </div>
     </div>
   </div>

@@ -8,7 +8,7 @@ class Ahorro extends Model
 {
     protected $fillable = [
         'socio_id', 'fechainicio', 'depositoinicial', 'dolar', 'dia15',
-        'dia30', 'pausada', 'comentario',
+        'dia30', 'pausada', 'comentario', 'ahorrotasa_id', 'especial',
     ];
 
     public function socio()
@@ -19,6 +19,11 @@ class Ahorro extends Model
     public function beneficiario()
     {
       return $this->belongsTo(Beneficiario::class);
+    }
+
+    public function ahorrotasa()
+    {
+      return $this->belongsTo(Ahorrotasa::class);
     }
 
     public function ahorrodetalles()

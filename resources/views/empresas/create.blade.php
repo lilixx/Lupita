@@ -1,3 +1,4 @@
+
 @extends('layouts.app')
 
 @section('content')
@@ -17,7 +18,7 @@
   <div class="form-group">
     <label for="titulo" class="col-sm-2 control-label">Nombre</label>
     <div class="col-sm-10">
-      <input type="text" class="form-control" name="nombre"  placeholder="nombre">
+      <input type="text" class="form-control" name="nombre"  placeholder="nombre" required>
     </div>
   </div>
 

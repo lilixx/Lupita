@@ -2,10 +2,11 @@
 
 <thead>
   <th>Id</th>
-  <th>Nombres</th>
   <th>Apellidos</th>
-  <th>Fecha de Nac.</th>
-  <th>Nacionalidad</th>
+  <th>Nombres</th>
+  <th>Num. cédula</th>
+  <th>Trabajo</th>
+  <th>Teléfono</th>
   <th>Acciones</th>
   <th></th>
 </thead>
@@ -14,16 +15,19 @@
   <tr>
     <td>{{ $h->id }}</td>
     <td>
-      {{ $h->nombres }}
-    </td>
-    <td>
       {{ $h->apellidos }}
     </td>
     <td>
-      {{ $h->fecha_nac }}
+      {{ $h->nombres }}
     </td>
     <td>
-      {{ $h->nombre }}
+      {{ $h->num_cedula }}
+    </td>
+    <td>
+      {{ $h->empresa->nombre }}
+    </td>
+    <td>
+      {{ $h->telf_casa }}
     </td>
     <td>
       <a href="huespedes/{{ $h->id }}/show" class="btn btn-success" title="Ver">
@@ -41,3 +45,5 @@
 @endforeach
 
 </table>
+
+{{ $socio->links() }}

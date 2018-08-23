@@ -28,6 +28,12 @@ class TasacambioController extends Controller
         return view('tasacambios.create');
     }
 
+    /* View Tasas */
+    public function tasas()
+    {
+      return view('tasacambios.tasas');
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -36,6 +42,15 @@ class TasacambioController extends Controller
      */
     public function store(Request $request)
     {
+        /*Validacion*/
+        $validatedData = $request->validate([
+            'valor' => 'required',
+          ],
+
+          [
+            'valor.required' => 'El valor de la venta es requerido', ]
+          );
+
        /* Pasa a inactivo la tasa anterior */
          $tasaanterior = TasaCambio::where('activo', 1)->first();
          if (!empty($tasaanterior)){ // si hay una tasa activa

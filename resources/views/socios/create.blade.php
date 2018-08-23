@@ -19,7 +19,7 @@
     <div class="alert alert-info" role="alert">{{ session('msj') }}</div>
   @endif
   @if(session()->has('errormsj'))
-    <div class="alert alert-danger" role="alert">Error, debe seleccionar la empresa o el tipo de pago debe ser efectivo</div>
+    <div class="alert alert-danger" role="alert">Error, al guardar los datos</div>
   @endif
 
 <form class="form-horizontal" role="form" method="POST" action="{{ url('sociosadd') }}" enctype="multipart/form-data">
@@ -35,6 +35,16 @@
   <input id="step_3" type="radio" name="steps"/>
   <label class="step" for="step_3" data-title="Pago"><span>3</span></label>
 
+  @if (count($errors) > 0)
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 
   <div class="content">
 
@@ -44,26 +54,28 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Nombres</label>
                   <div class="col-sm-8">
-                    <input type="text" class="form-control" name="nombres"  placeholder="Nombres">
+                    <input type="text" class="form-control" name="nombres"  placeholder="Nombres" value={{old('nombres')}}>
                   </div>
                 </div>
               </div>
+
 
               <div class="col-lg-6">
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Apellidos</label>
                   <div class="col-sm-8">
-                    <input type="text" class="form-control" name="apellidos"  placeholder="Apellidos">
+                    <input type="text" class="form-control" name="apellidos"  placeholder="Apellidos" value={{old('apellidos')}}>
                   </div>
                 </div>
               </div>
+
 
               <div class="col-lg-6">
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Fecha de Nacimiento</label>
                     <div class="col-sm-8">
                       <div class="input-group">
-                          <input type="text" class="form-control datepicker" name="fecha_nac">
+                          <input type="text" class="form-control datepicker" name="fecha_nac" value={{old('fecha_nac')}}>
                           <div class="input-group-addon">
                             <span class="glyphicon glyphicon-calendar"></span>
                           </div>
@@ -76,7 +88,7 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Lugar de Nacimiento</label>
                   <div class="col-sm-8">
-                    <input type="text" class="form-control" name="lugar_nac"  placeholder="Lugar de Nacimiento">
+                    <input type="text" class="form-control" name="lugar_nac"  placeholder="Lugar de Nacimiento" value={{old('lugar_nac')}}>
                   </div>
                 </div>
               </div>
@@ -85,7 +97,7 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Nacionalidad</label>
                   <div class="col-sm-8">
-                    <input type="text" class="form-control" name="nacionalidad"  placeholder="Nacionalidad">
+                    <input type="text" class="form-control" name="nacionalidad"  placeholder="Nacionalidad" value={{old('nacionalidad')}}>
                   </div>
                 </div>
               </div>
@@ -94,8 +106,10 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Sexo</label>
                   <div class="col-sm-8">
-                     <label class="radio-inline"><input type="radio" name="sexo" value="F">F</label>
-                     <label class="radio-inline"><input type="radio" name="sexo" value="M">M</label>
+                     <label class="radio-inline"><input type="radio" name="sexo" @if(old('sexo')=="F")
+                             checked="checked" @endif value="F">F</label>
+                     <label class="radio-inline"><input type="radio" @if(old('sexo')=="M")
+                             checked="checked" @endif name="sexo" value="M">M</label>
                   </div>
                 </div>
               </div>
@@ -104,12 +118,12 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Estado civil</label>
                   <div class="col-sm-8">
-                    <select class="form-control" name="estado_civil">
-                        <option>------</option>
-                        <option>soltero</option>
-                        <option>casado</option>
-                        <option>divorciado</option>
-                        <option>viudo</option>
+                  <select class="form-control" name="estado_civil" value={{old('estado_civil')}}>
+                      <option value="0" selected="true" disabled="true">Seleccione un Estado civil</option>
+                        <option @if(old('estado_civil') == "soltero") selected='selected' @endif>soltero</option>
+                        <option @if(old('estado_civil') == "casado") selected='selected' @endif>casado</option>
+                        <option @if(old('estado_civil') == "divorciado") selected='selected' @endif>divorciado</option>
+                        <option @if(old('estado_civil') == "viudo") selected='selected' @endif>viudo</option>
                     </select>
                   </div>
                 </div>
@@ -119,7 +133,7 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Conyugue</label>
                   <div class="col-sm-8">
-                    <input type="text" class="form-control" name="nombre_conyuge"  placeholder="Nombre del Conyugue">
+                    <input type="text" class="form-control" name="nombre_conyuge"  placeholder="Nombre del Conyugue" value={{old('nombre_conyuge')}}>
                   </div>
                 </div>
               </div>
@@ -128,7 +142,7 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Número de Hijos</label>
                   <div class="col-sm-8">
-                    <input type="text" class="form-control" name="num_hijos"  placeholder="Número de Hijos">
+                    <input type="text" class="form-control" name="num_hijos"  placeholder="Número de Hijos" value={{old('num_hijos')}}>
                   </div>
                 </div>
               </div>
@@ -137,7 +151,7 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Número de Cédula</label>
                   <div class="col-sm-8">
-                    <input type="text" class="form-control" name="num_cedula"  placeholder="Número de Cédula">
+                    <input type="text" class="form-control" name="num_cedula"  placeholder="Número de Cédula" value={{old('num_cedula')}}>
                   </div>
                 </div>
               </div>
@@ -146,7 +160,7 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Número de Licencia</label>
                   <div class="col-sm-8">
-                    <input type="text" class="form-control" name="num_licencia"  placeholder="Número de Licencia">
+                    <input type="text" class="form-control" name="num_licencia"  placeholder="Número de Licencia" value={{old('num_licencia')}}>
                   </div>
                 </div>
               </div>
@@ -155,7 +169,7 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Número INSS</label>
                   <div class="col-sm-8">
-                    <input type="text" class="form-control" name="num_inss"  placeholder="Número INSS">
+                    <input type="text" class="form-control" name="num_inss"  placeholder="Número INSS"  value={{old('num_inss')}}>
                   </div>
                 </div>
               </div>
@@ -164,7 +178,7 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Dirección Completa</label>
                   <div class="col-sm-8">
-                    <input type="text" class="form-control" name="direccion_casa"  placeholder="Dirección">
+                    <input type="text" class="form-control" name="direccion_casa"  placeholder="Dirección" value={{old('direccion_casa')}}>
                   </div>
                 </div>
               </div>
@@ -173,7 +187,7 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Municipio</label>
                   <div class="col-sm-8">
-                    <input type="text" class="form-control" name="municipio"  placeholder="Municipio">
+                    <input type="text" class="form-control" name="municipio"  placeholder="Municipio" value={{old('municipio')}}>
                   </div>
                 </div>
               </div>
@@ -182,7 +196,7 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Ciudad</label>
                   <div class="col-sm-8">
-                    <input type="text" class="form-control" name="ciudad"  placeholder="Ciudad">
+                    <input type="text" class="form-control" name="ciudad"  placeholder="Ciudad" value={{old('ciudad')}}>
                   </div>
                 </div>
               </div>
@@ -191,7 +205,7 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Departamento</label>
                   <div class="col-sm-8">
-                    <input type="text" class="form-control" name="departamento"  placeholder="Departamento">
+                    <input type="text" class="form-control" name="departamento"  placeholder="Departamento" value={{old('departamento')}}>
                   </div>
                 </div>
               </div>
@@ -200,7 +214,7 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Telefono de la Casa</label>
                   <div class="col-sm-8">
-                    <input type="text" class="form-control" name="telf_casa"  placeholder="Telefono de la casa">
+                    <input type="text" class="form-control" name="telf_casa"  placeholder="Telefono de la casa" value={{old('telf_casa')}}>
                   </div>
                 </div>
               </div>
@@ -227,7 +241,7 @@
         <div class="form-group">
           <label for="titulo" class="col-sm-4 control-label">Telefono</label>
           <div class="col-sm-8">
-            <input type="text" class="form-control" name="telf_trabajo"  placeholder="Telefono">
+            <input type="text" class="form-control" name="telf_trabajo"  placeholder="Telefono" value={{old('telf_trabajo')}}>
           </div>
         </div>
       </div>
@@ -236,7 +250,7 @@
         <div class="form-group">
           <label for="titulo" class="col-sm-4 control-label">Cargo que ocupa</label>
           <div class="col-sm-8">
-            <input type="text" class="form-control" name="cargo"  placeholder="Cargo">
+            <input type="text" class="form-control" name="cargo"  placeholder="Cargo" value={{old('cargo')}}>
           </div>
         </div>
       </div>
@@ -245,7 +259,7 @@
         <div class="form-group">
           <label for="titulo" class="col-sm-4 control-label">Sueldo que devenga</label>
           <div class="col-sm-8">
-            <input type="text" class="form-control" name="sueldo"  placeholder="Sueldo">
+            <input type="text" class="form-control" name="sueldo"  placeholder="Sueldo" value={{old('sueldo')}}>
           </div>
         </div>
       </div>
@@ -254,7 +268,7 @@
         <div class="form-group">
           <label for="titulo" class="col-sm-4 control-label">Otros ingresos</label>
           <div class="col-sm-8">
-            <input type="text" class="form-control" name="otrosingresos"  placeholder="Otros ingresos">
+            <input type="text" class="form-control" name="otrosingresos"  placeholder="Otros ingresos" value={{old('otrosingresos')}}>
           </div>
         </div>
       </div>
@@ -263,7 +277,7 @@
         <div class="form-group">
           <label for="titulo" class="col-sm-4 control-label">Origen de estos</label>
           <div class="col-sm-8">
-            <input type="text" class="form-control" name="origenoting"  placeholder="Orrigen de los ingresos">
+            <input type="text" class="form-control" name="origenoting"  placeholder="Orrigen de los ingresos" value={{old('origenoting')}}>
           </div>
         </div>
       </div>
@@ -272,7 +286,7 @@
         <div class="form-group">
           <label for="titulo" class="col-sm-4 control-label">Tiempo de laborar ahí</label>
             <div class="col-sm-8">
-              <input type="text" class="form-control" name="antiguedad"  placeholder="Antiguedad">
+              <input type="text" class="form-control" name="antiguedad"  placeholder="Antiguedad" value={{old('antiguedad')}}>
             </div>
           </div>
         </div>
@@ -286,23 +300,26 @@
         <label for="titulo" class="col-sm-3 control-label">Tipo de Pago</label>
         <div class="col-sm-8">
           <select  class="form-control input-sm" name="pagoplanilla">
-              <option value="1">Planilla</option>
-              <option value="0">Efectivo</option>
+            <option value="3" selected="true" disabled="true">Seleccione el tipo de pago</option>
+              <option @if(old('pagoplanilla') == "1") selected='selected' @endif value="1">Planilla</option>
+              <option @if(old('pagoplanilla') == "0") selected='selected' @endif value="0">Efectivo</option>
           </select>
         </div>
       </div>
     </div>
 
+
+
     <div class="col-lg-6">
       <div class="form-group">
-        <label for="titulo" class="col-sm-3 control-label">Cantidad de Deducciones</label>
+        <label for="titulo" class="col-sm-4 control-label">Cantidad de Deducciones</label>
         <div class="col-sm-8">
-          <select class="form-control input-sm" name="afiliacioncatalogo_id">
-            <option value="0" selected="true" disabled="true">Seleccione una cantidad</option>
-              @foreach ($afcat as $ac)
-                <option value="{{$ac->id}}">{{$ac->cantidad}}(C${{$ac->valor}})</option>
-              @endforeach
-           </select>
+          <select  class="form-control input-sm" name="afiliacioncatologo_id">
+           <option value="0" selected="true" disabled="true">Seleccione una cantidad</option>
+            @foreach ($afcat as $ac)
+             <option value="{{$ac->id}}">{{$ac->cantidad}}(C${{$ac->valor}})</option>
+            @endforeach
+            </select>
         </div>
       </div>
     </div>
@@ -311,7 +328,7 @@
         <div class="form-group">
           <label for="titulo" class="col-sm-4 control-label">Comentarios</label>
           <div class="col-sm-8">
-            <textarea class="form-control" rows="3" name="comentario"  placeholder="Comentarios"></textarea>
+            <textarea class="form-control" rows="3" name="comentario"  placeholder="Comentarios" value={{old('comentario')}}></textarea>
           </div>
         </div>
       </div>

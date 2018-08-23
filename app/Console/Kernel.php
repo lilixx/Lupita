@@ -35,32 +35,41 @@ class Kernel extends ConsoleKernel
         //          ->hourly();
 
        //Afiliacion
-       $schedule->call('Lupita\Http\Controllers\AfiliacionController@cronafiliacion')->monthlyOn(15, '14:40');
-       $schedule->call('Lupita\Http\Controllers\AfiliacionController@cronafiliacion')->monthlyOn(date('t'), '14:20');
+       $schedule->call('Lupita\Http\Controllers\AfiliacionController@cronafiliacion')->monthlyOn(15, '10:59');
+       $schedule->call('Lupita\Http\Controllers\AfiliacionController@cronafiliacion')->monthlyOn(date('t'), '09:05');
 
-       //Pretamo Quincenal - dia 15
-       $schedule->call('Lupita\Http\Controllers\PrestamoController@cronprestamoq')->monthlyOn(15, '11:40');
+       //Prestamo Quincenal - dia 15
+       $schedule->call('Lupita\Http\Controllers\PrestamoController@cronprestamoq')->monthlyOn(15, '10:15');
 
-       //Pretamo Quincenal - Fin del mes
-       $schedule->call('Lupita\Http\Controllers\PrestamoController@cronprestamoq')->monthlyOn(date('t'), '14:20');
+       //Prestamo Quincenal - Fin del mes
+       $schedule->call('Lupita\Http\Controllers\PrestamoController@cronprestamoq')->monthlyOn(30, '10:09');
 
        // Prestamo mensual - pagos quincenales
-       $schedule->call('Lupita\Http\Controllers\PrestamoController@cronprestamom')->monthlyOn(15, '11:40');
+       $schedule->call('Lupita\Http\Controllers\PrestamoController@cronprestamom')->monthlyOn(15, '11:41');
 
-       // Prestamo mensual - pagos ultimo dia del mes
-       $schedule->call('Lupita\Http\Controllers\PrestamoController@cronprestamom')->monthlyOn(date('t'), '14:20');
+       //Febrero
+       $schedule->call('Lupita\Http\Controllers\PrestamoController@cronprestamom')->cron('20 15 28 2 *');
+       $schedule->call('Lupita\Http\Controllers\PrestamoController@cronprestamoq')->cron('22 15 28 2 *');
 
-       //Ahorro - Finales del mes
-       $schedule->call('Lupita\Http\Controllers\AhorroController@cronahorrom')->monthlyOn(date('t'), '14:20');
-       $schedule->call('Lupita\Http\Controllers\AhorroController@cronahorroq')->monthlyOn(15, '11:40');
+       // Prestamo mensual - pagos dia 30
+       $schedule->call('Lupita\Http\Controllers\PrestamoController@cronprestamom')->monthlyOn(30, '10:09');
+
+       //Ahorro
+       $schedule->call('Lupita\Http\Controllers\AhorroController@cronahorrom')->monthlyOn(date('t'), '09:05');
+       $schedule->call('Lupita\Http\Controllers\AhorroController@cronahorroq')->monthlyOn(15, '10:59');
 
        //Deuda Empresa (detalles)
-       $schedule->call('Lupita\Http\Controllers\DeudaempresaController@cronafdeudaemp')->monthlyOn(date('t'), '14:20');
-       $schedule->call('Lupita\Http\Controllers\DeudaempresaController@cronafdeudaemp')->monthlyOn(15, '11:40');
+       $schedule->call('Lupita\Http\Controllers\DeudaempresaController@cronafdeudaemp')->monthlyOn(date('t'), '10:14');
+       $schedule->call('Lupita\Http\Controllers\DeudaempresaController@cronafdeudaemp')->monthlyOn(15, '10:59');
 
        //Cartera Deuda Empresa (resumen)
-       $schedule->call('Lupita\Http\Controllers\CarteraController@croncartera')->monthlyOn(date('t'), '10:56');
-       $schedule->call('Lupita\Http\Controllers\CarteraController@croncartera')->monthlyOn(15, '10:56');
+       $schedule->call('Lupita\Http\Controllers\CarteraController@croncartera')->monthlyOn(date('t'), '10:15');
+       $schedule->call('Lupita\Http\Controllers\CarteraController@croncartera')->monthlyOn(15, '10:59');
+
+       //Plazo fijo detalles
+       $schedule->call('Lupita\Http\Controllers\PlazofijodetalleController@cronplazofijomen')->monthlyOn(date('t'), '09:05');
+       $schedule->call('Lupita\Http\Controllers\PlazofijodetalleController@cronplazofijopay')->dailyAt('17:19');
+       $schedule->call('Lupita\Http\Controllers\PlazofijodetalleController@cronplazofijomenvecimiento')->dailyAt('13:25');
 
     }
 

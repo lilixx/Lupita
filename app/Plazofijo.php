@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Plazofijo extends Model
 {
     protected $fillable = [
-        'socio_id', 'frecpagointere_id', 'formapagointere_id', 'numdoc',
-        'vencimiento', 'monto', 'interesven', 'ir', 'tasainteres', 'diaplazo', 'debitoch', 'activo'
+        'socio_id', 'frecpagointere_id', 'formapagointere_id', 'numdoc', 'plazofijotasa_id',
+        'vencimiento', 'monto', 'intereses', 'ir', 'diaplazo', 'debitoch', 'activo'
     ];
 
     public function beneficiarios()
@@ -29,6 +29,16 @@ class Plazofijo extends Model
     public function frecpagointere()
     {
       return $this->belongsTo(Frecpagointere::class);
+    }
+
+    public function plazofijotasa()
+    {
+      return $this->belongsTo(Plazofijotasa::class);
+    }
+
+    public function plazofijodetalles()
+    {
+       return $this->hasMany(Plazofijodetalle::class);
     }
 
 

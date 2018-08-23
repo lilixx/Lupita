@@ -14,6 +14,16 @@
 
 <h1 class="titulo cargo"> Agregar  Tasa de Cambio </h1>
 
+@if (count($errors) > 0)
+  <div class="alert alert-danger">
+      <ul>
+          @foreach ($errors->all() as $error)
+              <li>{{ $error }}</li>
+          @endforeach
+      </ul>
+  </div>
+@endif
+
 
 <div class="form-group">
   <label for="precio" class="col-sm-2 control-label">Valor de Venta</label>

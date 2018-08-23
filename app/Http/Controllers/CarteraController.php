@@ -17,9 +17,9 @@ class CarteraController extends Controller
     public function index(){
 
     }
-    public function croncartera()
+    public function croncartera()//
     {
-      $today = Carbon::now()->format('Y-m-d').'%';
+      $today = Carbon::now()->format('Y-m-d').'%'; 
       $now = \Carbon\Carbon::now();
 
       //Deuda empresa de hoy
@@ -33,12 +33,12 @@ class CarteraController extends Controller
       foreach($deudaemp as $dp){
 
         if($idempresa == 0 || $idempresa == $dp->empresa_id){ // verifica que el id de la empresa es igual al anterior
-          if($dp->afiliaciondetalle_id != null){
+          if($dp->afiliaciondetalle_id != null){ //si es afiliacion
             $afiliacion = $afiliacion + $dp->afiliaciondetalle->afiliacion->afiliacioncatalogo->valor;
-          }else if($dp->prestamodetalle_id != null){
+          }else if($dp->prestamodetalle_id != null){ //si es prestamo
             $principal = $prestamo + $dp->prestamodetalle->abonoprincipal + $principal;
             $interes = $interes + $dp->prestamodetalle->intereses;
-          }else if($dp->ahorrodetalle_id != null){
+          }else if($dp->ahorrodetalle_id != null){ // si es ahorro
             $ahorro = $ahorro + $dp->ahorrodetalle->creditos;
           }
           if($idempresa == 0){

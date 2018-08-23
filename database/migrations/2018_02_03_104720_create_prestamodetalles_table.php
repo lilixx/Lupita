@@ -20,7 +20,7 @@ class CreatePrestamodetallesTable extends Migration
             $table->integer('tasacambio_id')->unsigned();
             $table->foreign('tasacambio_id')->references('id')->on('tasacambios');
             $table->integer('numcuota');
-            $table->float('abonoprincipal');
+            $table->float('abonoprincipal')->nullable();
             $table->float('intereses');
             $table->float('saldo');
             $table->timestamps();

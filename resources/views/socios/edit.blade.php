@@ -43,7 +43,7 @@
 
               <div class="col-lg-6">
                 <div class="form-group">
-                  <label for="titulo" class="col-sm-4 control-label">Nombres</label>
+                  <label for="titulo" class="col-sm-4 control-label">Nombres (requerido)</label>
                   <div class="col-sm-8">
                     <input type="text" class="form-control" name="nombres" value="{{$socio->nombres}}">
                   </div>
@@ -52,7 +52,7 @@
 
               <div class="col-lg-6">
                 <div class="form-group">
-                  <label for="titulo" class="col-sm-4 control-label">Apellidos</label>
+                  <label for="titulo" class="col-sm-4 control-label">Apellidos (requerido)</label>
                   <div class="col-sm-8">
                     <input type="text" class="form-control" name="apellidos"  value="{{$socio->apellidos}}">
                   </div>
@@ -61,7 +61,7 @@
 
               <div class="col-lg-6">
                 <div class="form-group">
-                  <label for="titulo" class="col-sm-4 control-label">Fecha de Nacimiento</label>
+                  <label for="titulo" class="col-sm-4 control-label">Fecha de Nacimiento (requerido)</label>
                     <div class="col-sm-8">
                       <div class="input-group">
                           <input type="text" class="form-control datepicker" name="fecha_nac" value="{{$socio->fecha_nac}}">
@@ -84,7 +84,7 @@
 
               <div class="col-lg-6">
                 <div class="form-group">
-                  <label for="titulo" class="col-sm-4 control-label">Nacionalidad</label>
+                  <label for="titulo" class="col-sm-4 control-label">Nacionalidad (requerido)</label>
                   <div class="col-sm-8">
                     <input type="text" class="form-control" name="nacionalidad"  value="{{$socio->nacionalidad}}">
                   </div>
@@ -94,7 +94,7 @@
 
               <div class="col-lg-6">
                 <div class="form-group">
-                  <label for="titulo" class="col-sm-4 control-label">Sexo</label>
+                  <label for="titulo" class="col-sm-4 control-label">Sexo (requerido)</label>
                   <div class="col-sm-8">
                      <label class="radio-inline"><input type="radio" name="sexo" value="F" @if($socio->sexo=="F")
                              checked="checked" @endif>F</label>
@@ -106,7 +106,7 @@
 
               <div class="col-lg-6">
                 <div class="form-group">
-                  <label for="titulo" class="col-sm-4 control-label">Estado civil</label>
+                  <label for="titulo" class="col-sm-4 control-label">Estado civil (requerido)</label>
                   <div class="col-sm-8">
                     <select class="form-control" name="estado_civil">
                         <option @if($socio->estado_civil=="soltero" || $socio->estado_civil=="soltera")
@@ -142,7 +142,7 @@
 
               <div class="col-lg-6">
                 <div class="form-group">
-                  <label for="titulo" class="col-sm-4 control-label">Número de Cédula</label>
+                  <label for="titulo" class="col-sm-4 control-label">Número de Cédula (requerido)</label>
                   <div class="col-sm-8">
                     <input type="text" class="form-control" name="num_cedula" value="{{$socio->num_cedula}}">
                   </div>
@@ -187,7 +187,7 @@
 
               <div class="col-lg-6">
                 <div class="form-group">
-                  <label for="titulo" class="col-sm-4 control-label">Ciudad</label>
+                  <label for="titulo" class="col-sm-4 control-label">Ciudad (requerido)</label>
                   <div class="col-sm-8">
                     <input type="text" class="form-control" name="ciudad" value="{{$socio->ciudad}}">
                   </div>
@@ -196,7 +196,7 @@
 
               <div class="col-lg-6">
                 <div class="form-group">
-                  <label for="titulo" class="col-sm-4 control-label">Departamento</label>
+                  <label for="titulo" class="col-sm-4 control-label">Departamento (requerido)</label>
                   <div class="col-sm-8">
                     <input type="text" class="form-control" name="departamento" value="{{$socio->departamento}}">
                   </div>
@@ -218,7 +218,7 @@
 
       <div class="col-lg-6">
         <div class="form-group">
-          <label for="titulo" class="col-sm-4 control-label">Trabajo</label>
+          <label for="titulo" class="col-sm-4 control-label">Trabajo (requerido)</label>
           <div class="col-sm-8">
             <select  class="form-control input-sm" name="empresa_id">
              <option value="0" selected="true" disabled="true">Seleccione una Empresa</option>

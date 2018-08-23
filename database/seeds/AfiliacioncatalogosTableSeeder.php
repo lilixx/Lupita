@@ -13,8 +13,13 @@ class AfiliacioncatalogosTableSeeder extends Seeder
     {
        DB::table('afiliacioncatalogos')->insert(array(
           array('cantidad' => '1', 'valor' => '100'),
-          array('nombre' => '2', 'valor' => '50'),
-          array('nombre' => '4', 'valor' => '25'),
+          array('cantidad' => '2', 'valor' => '50'),
+          array('cantidad' => '1', 'valor' => '50'),
+          array('cantidad' => '4', 'valor' => '25'),
+          array('cantidad' => '1', 'valor' => '25'),
+          array('cantidad' => '2', 'valor' => '25'),
+          array('cantidad' => '3', 'valor' => '25'),
+
        ));
     }
 }

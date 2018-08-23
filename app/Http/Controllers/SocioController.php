@@ -7,6 +7,10 @@ use Lupita\Socio;
 use Lupita\Empresa;
 use Lupita\Afiliacioncatalogo;
 use Lupita\Afiliacion;
+use Lupita\Ahorro;
+use Lupita\Prestamo;
+use Lupita\Plazofijo;
+use ValidateRequests;
 
 class SocioController extends Controller
 {
@@ -17,8 +21,43 @@ class SocioController extends Controller
      */
     public function index()
     {
-      $socio = Socio::where('activo', 1)->get();
+      $socio = Socio::where('activo', 1)->orderBy('apellidos', 'asc')->paginate(10);
       return view('socios.socios',compact('socio'));
+    }
+
+    public function search()
+    {
+       return view('socios.search');
+    }
+
+    public function reportes()
+    {
+       return view('socios.reportes');
+    }
+
+
+    public function consultsocio(Request $request)
+    {
+       //dd($request->all());
+       $sc = $request->nombresocio;
+       $id = filter_var($sc, FILTER_SANITIZE_NUMBER_INT); //obtiene el id del socio
+
+       $socio = Socio::find($id);
+
+       //Ahorro
+       $ahorro = Ahorro::where('socio_id', '=', $id)->get();
+
+       //Pretamo
+       $prestamo = Prestamo::where('socio_id', '=', $id)->get();
+
+       //Plazo fijos
+
+       $plazofijo = Plazofijo::where('socio_id', '=', $id)->get();
+
+       //afiliacion - deuda
+
+       return view('socios.consultsocio',compact('ahorro', 'prestamo', 'plazofijo', 'socio'));
+
     }
 
     //autocomplete
@@ -46,12 +85,47 @@ class SocioController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+
+
     public function store(Request $request)
     {   //dd($request->all());
 
-        if($request->pagoplanilla == 1 && (empty($request->empresa_id))){ //si selecciono pago de planilla y no selecciono la empresa
-          return back()->with('errormsj', 'Los datos no se guardaron');
-        }
+        //dd($request->afiliacioncatologo_id);
+
+        // Validaciones
+         $validatedData = $request->validate([
+           'nombres' => 'required',
+           'apellidos' => 'required',
+           'fecha_nac' => 'required',
+           'sexo' => 'required',
+           'nacionalidad' => 'required',
+           'estado_civil' => 'required',
+           'num_cedula' => 'required',
+           'ciudad' => 'required',
+           'departamento' => 'required',
+           'empresa_id' => 'required',
+           'pagoplanilla' => 'required',
+           'afiliacioncatologo_id' => 'required_if:pagoplanilla,==,1'
+
+         ],
+
+         [
+           'nombres.required' => 'El campo nombres es requerido',
+           'apellidos.required' => 'El campo apellidos es requerido',
+           'fecha_nac.required' => 'El campo fecha de nacimiento es requerido',
+           'sexo.required' => 'El campo sexo es requerido',
+           'nacionalidad.required' => 'El campo nacionalidad es requerido',
+           'estado_civil.required' => 'El campo estado civil es requerido',
+           'num_cedula.required' => 'El campo número de cédula es requerido',
+           'ciudad.required' => 'El campo ciudad es requerido',
+           'departamento.required' => 'El campo departamento es requerido',
+           'empresa_id.required' => 'El campo empresa es requerido',
+           'pagoplanilla.required' => 'El campo tipo de pago es requerido',
+           'afiliacioncatologo_id.required_if' => 'Debe seleccionar la cantidad de deducciones'
+
+         ]
+
+        );
 
       //  si es femenino
         $estadociv = $request->estado_civil;
@@ -59,6 +133,8 @@ class SocioController extends Controller
            $estadociv = substr_replace($estadociv, "a", -1);
            $request->merge(array('estado_civil' => $estadociv));
         }
+
+        //dd($request->afiliacioncatologo_id);
 
         //---------- Guardar al Socio -------------
         $socio = Socio::create($request->all());
@@ -71,7 +147,7 @@ class SocioController extends Controller
         if($request->pagoplanilla == 0){
           $afiliacion->pagado = 1;
         } else {
-          $afiliacion->afiliacioncatalogo_id = $request->afiliacioncatalogo_id;
+          $afiliacion->afiliacioncatalogo_id = $request->afiliacioncatologo_id;
         }
         $socio->afiliacions()->save($afiliacion);
 
@@ -114,6 +190,36 @@ class SocioController extends Controller
      */
     public function update(Request $request, $id)
     {
+      // Validaciones
+       $validatedData = $request->validate([
+         'nombres' => 'required',
+         'apellidos' => 'required',
+         'fecha_nac' => 'required',
+         'sexo' => 'required',
+         'nacionalidad' => 'required',
+         'estado_civil' => 'required',
+         'num_cedula' => 'required',
+         'ciudad' => 'required',
+         'departamento' => 'required',
+         'empresa_id' => 'required',
+       ],
+
+       [
+         'nombres.required' => 'El campo nombres es requerido',
+         'apellidos.required' => 'El campo apellidos es requerido',
+         'fecha_nac.required' => 'El campo fecha de nacimiento es requerido',
+         'sexo.required' => 'El campo sexo es requerido',
+         'nacionalidad.required' => 'El campo nacionalidad es requerido',
+         'estado_civil.required' => 'El campo estado civil es requerido',
+         'num_cedula.required' => 'El campo número de cédula es requerido',
+         'ciudad.required' => 'El campo ciudad es requerido',
+         'departamento.required' => 'El campo departamento es requerido',
+         'empresa_id.required' => 'El campo empresa es requerido',
+
+       ]
+
+      );
+
         $estadoc = $request->estado_civil;
         if($request->sexo == "F"){
            $estadociv = substr_replace($estadoc, "a", -1);// dd($estadociv);

@@ -22,11 +22,11 @@ class CreateSociosTable extends Migration
             $table->date('fecha_nac');
             $table->char('sexo', 4);
             $table->string('lugar_nac', 60)->nullable();
-            $table->string('nacionalidad', 40)->nullable();
-            $table->string('estado_civil', 30)->nullable();
+            $table->string('nacionalidad', 40);
+            $table->string('estado_civil', 30);
             $table->string('nombre_conyuge', 80)->nullable();
             $table->integer('num_hijos')->nullable();
-            $table->string('num_cedula', 16)->nullable();
+            $table->string('num_cedula', 16);
             $table->string('num_licencia', 20)->nullable();
             $table->string('num_inss', 20)->nullable();
             $table->string('antiguedad', 10)->nullable();
@@ -36,8 +36,8 @@ class CreateSociosTable extends Migration
             $table->string('telf_casa', 40)->nullable();
             $table->string('telf_trabajo', 40)->nullable();
             $table->string('municipio', 40)->nullable();
-            $table->string('ciudad', 40)->nullable();
-            $table->string('departamento', 40)->nullable();
+            $table->string('ciudad', 40);
+            $table->string('departamento', 40);
             $table->string('cargo', 60)->nullable();
             $table->float('sueldo')->nullable();
             $table->longText('comentario')->nullable();

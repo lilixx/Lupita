@@ -31,7 +31,7 @@ class AfiliacionController extends Controller
 
     }
 
-    public function cronafiliacion()
+    public function cronafiliacion()//cronafiliacion
     {
           $now = \Carbon\Carbon::now();
           $afiliacion = Afiliacion::where('pagado', 0)->get();//busca las que no han sido pagadas
@@ -49,6 +49,7 @@ class AfiliacionController extends Controller
                     'updated_at' => $now,
                   ];
                 } else { //ya hay afiliaciondetalle
+                  // dd($af->afiliacioncatalogo->cantidad);
                    if($af->afiliacioncatalogo->cantidad >= $ultimoafd->num_deduccion){ //si es menor o igual a la cantidad de afiliacioncatalogo
                       $data[] =  [
                         'afiliacion_id' => $afid,
@@ -68,6 +69,8 @@ class AfiliacionController extends Controller
                 }
 
               }
+
+              //dd($data);
 
              Afiliaciondetalle::insert($data); // guarda las afiliaciones detalle
 

@@ -39,6 +39,16 @@
   <input id="step_3" type="radio" name="steps"/>
   <label class="step" for="step_3" data-title="Beneficiario"><span>3</span></label>
 
+  @if (count($errors) > 0)
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 
   <div class="content">
 
@@ -49,7 +59,7 @@
             <div class="form-group">
               <label for="titulo" class="col-sm-2 control-label">Nombre del Socio</label>
                 <div class="col-sm-8">
-                     <input type="text" class="form-control2" name="nombresocio" placeholder="Búsqueda del Socio" style="width:300px;">
+                     <input type="text" class="form-control2" name="nombresocio" placeholder="Búsqueda del Socio" style="width:300px;" value={{old('nombresocio')}}>
                  </div>
                </div>
              </div>
@@ -58,7 +68,7 @@
                <div class="form-group">
                  <label for="titulo" class="col-sm-4 control-label">Num. Documento</label>
                  <div class="col-sm-8">
-                   <input type="text" class="form-control" name="numdoc"  placeholder="Ingrese el número de  documento">
+                   <input type="text" class="form-control" name="numdoc"   placeholder="Ingrese el número de  documento" value={{old('numdoc')}}>
                  </div>
                </div>
              </div>
@@ -68,7 +78,7 @@
                 <div class="form-group">
                   <label for="titulo" class="col-sm-4 control-label">Vencimiento</label>
                     <div class="col-sm-8">
-                      <select name="vencimiento" class="form-control" name="vencimiento">
+                      <select name="vencimiento" class="form-control" name="vencimiento" value={{old('vencimiento')}}>
                         <option value="0" selected="true" disabled="true">Indique el vencimiento</option>
                            <option value="anual">Anual</option>
                            <option value="semestral">Semestral</option>
@@ -85,7 +95,7 @@
         <div class="form-group">
           <label for="titulo" class="col-sm-4 control-label">Monto Capital</label>
           <div class="col-sm-8">
-            <input type="text" class="form-control" name="monto"  placeholder="Ingrese el monto">
+            <input type="text" class="form-control" name="monto"   placeholder="Ingrese el monto">
           </div>
         </div>
       </div>
@@ -108,7 +118,7 @@
        <div class="form-group">
          <label for="titulo" class="col-sm-4 control-label">Nota de Debito</label>
          <div class="col-sm-8">
-           <input type="text" class="form-control" name="rock_ck"  placeholder="Ingrese el numero de la nota">
+           <input type="text" class="form-control" name="rock_ck"  placeholder="Ingrese el numero de la nota" value={{old('rock_ck')}} >
          </div>
        </div>
      </div>
@@ -143,14 +153,17 @@
                    </div>
                 </div>
 
-        <div class="col-lg-6">
+
+
+      <div class="col-lg-6">
         <div class="form-group">
           <label for="titulo" class="col-sm-4 control-label">Tasa de interes Anual</label>
           <div class="col-sm-8">
-            <div class="input-group">
-              <span class="input-group-addon" id="basic-addon1">%</span>
-              <input type="text" class="form-control" name="tasainteres">
-            </div>
+            <select name="plazofijotasa_id" class="form-control" name="plazofijotasa_id">
+               @foreach ($tasa as $pt)
+                 <option value="{{$pt->id}}">{{$pt->valor}}%</option>
+               @endforeach
+              </select>
           </div>
         </div>
       </div>

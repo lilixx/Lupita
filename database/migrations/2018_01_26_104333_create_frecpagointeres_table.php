@@ -16,6 +16,7 @@ class CreateFrecpagointeresTable extends Migration
         Schema::create('frecpagointeres', function (Blueprint $table) {
             $table->increments('id');
             $table->string('nombre', 12);
+            $table->integer('numero')->unsigned();
             $table->timestamps();
         });
     }

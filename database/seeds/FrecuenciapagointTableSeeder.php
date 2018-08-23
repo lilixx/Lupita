@@ -12,9 +12,10 @@ class FrecuenciapagointTableSeeder extends Seeder
     public function run()
     {
         DB::table('frecpagointeres')->insert(array(
-           array('nombre' => 'mensual'),
-           array('nombre' => 'semestral'),
-           array('nombre' => 'anual'),
+           array('nombre' => 'mensual', 'numero' => '12'),
+           array('nombre' => 'semestral', 'numero' => '2'),
+           array('nombre' => 'anual', 'numero' => '1'),
+           array('nombre' => 'trimestral', 'numero' => '4'),
         ));
     }
 }

@@ -22,4 +22,9 @@ class Socio extends Model
     {
       return $this->belongsTo(Empresa::class);
     }
+
+    public function ahorro()
+    {
+       return $this->hasOne(Ahorro::class);
+    }
 }
