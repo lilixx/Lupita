@@ -38,6 +38,10 @@ class Kernel extends ConsoleKernel
        $schedule->call('Lupita\Http\Controllers\AfiliacionController@cronafiliacion')->monthlyOn(15, '10:59');
        $schedule->call('Lupita\Http\Controllers\AfiliacionController@cronafiliacion')->monthlyOn(date('t'), '09:05');
 
+       //Anticipo
+       $schedule->call('Lupita\Http\Controllers\PrestamoController@cronanticipo')->monthlyOn(15, '11:22');
+
+
        //Prestamo Quincenal - dia 15
        $schedule->call('Lupita\Http\Controllers\PrestamoController@cronprestamoq')->monthlyOn(15, '10:15');
 

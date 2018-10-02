@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         $this->call(FrecuenciapagointTableSeeder::class);
         $this->call(FormapagointTableSeeder::class);
         $this->call(RoleTableSeeder::class);
+        $this->call(RoleUserTableSeeder::class);
         $this->call(AhorrotasaTableSeeder::class);
         $this->call(PlazofijotasaTableSeeder::class);
     }

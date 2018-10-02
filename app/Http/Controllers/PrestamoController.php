@@ -13,6 +13,7 @@ use Lupita\Tasacambio;
 use Lupita\Comision;
 use Lupita\Cooperativa;
 use Lupita\Prestamopausa;
+use Lupita\Cajachica;
 use DB;
 use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
@@ -27,11 +28,22 @@ class PrestamoController extends Controller
     public function index()
     {
 
-       $prestamo = Prestamo::where('activo', 1)->paginate(10);
+       $prestamo = Prestamo::where('activo', 1)->where('anticipo', 0)->paginate(10);
 
        //DB::table('prestamos')->where('activo', 0)->update(['activo'=>1, 'pagado'=>0]);
 
       return view('prestamos.prestamo',compact('prestamo'));
+
+    }
+
+    public function anticipoindex()
+    {
+
+       $anticipo = Prestamo::where('activo', 1)->where('anticipo', 1)->paginate(10);
+
+       //DB::table('prestamos')->where('activo', 0)->update(['activo'=>1, 'pagado'=>0]);
+
+      return view('prestamos.anticipo',compact('anticipo'));
 
     }
 
@@ -155,6 +167,107 @@ class PrestamoController extends Controller
 
         //return view('prestamos.repcartera',compact('cartera'));
     }
+
+    /*Prestamo anticipos*/
+    //cronanticipo
+    public function cronanticipo()    //
+    {
+        $now = \Carbon\Carbon::now();
+        $prestamo = Prestamo::where('activo', 1)->where('anticipo', 1)->get(); //Busca los anticipos
+
+        $cont = 0; $cuotafinal = 0; $pagos = [];
+        foreach($prestamo as $pr){
+
+         $id = $pr->id; // id del prestamo
+
+          $ultimopago = Prestamodetalle::where('prestamo_id', $id)->orderBy('id', 'desc')->first(); // obtener el ultimo pago del prestamo
+
+          if($pr->comision_id != null){
+           $porcom = ($pr->comision->valor)/100; //porcentaje de comision
+           $comision = $pr->monto * $porcom; //comision
+         } else{
+           $comision = 0;
+         }
+
+         //dd($ultimopago);
+
+          if(empty($ultimopago)){ //si aun no se han hecho pagos al prestamo
+            $hoy = date('Y-m-d'); //dd($pr->fechainicio);
+            if($hoy >= $pr->fechainicio){ //si hoy es la fecha de inicio
+              $saldo = $pr->monto + $comision;
+              $numcuota = 1;
+              if($numcuota == $pr->cantcuotas){ //si ya llego a su ultima cuota
+                  $principal = $pr->monto;
+                  $cuotafinal = 1;
+                  $saldoactual = 0;
+               } else {
+                 $principal = $pr->cuota;
+                 //$cuotafinal = 0;
+                 $saldoactual = $saldo - $principal;
+               }
+             $cont = 1;
+           }
+          } else { // ya se han realizado pagos
+              $cont = $cont+1;
+              $numcuota = $ultimopago->numcuota+1;
+              if($numcuota == $pr->cantcuotas){ //si ya llego a su ultima cuota
+                  $principal = $ultimopago->saldo;
+                  $cuotafinal = 1;
+               } else{
+                 $principal = $pr->cuota;
+                // $cuotafinal = 0;
+               }
+              $saldo = $ultimopago->saldo - $principal;
+              $saldoactual = $ultimopago->saldo - $principal;
+        }
+
+        /*Si esta en pausa */
+        if($pr->pausa == 1){
+          $prpausa = Prestamopausa::where('prestamo_id', $id)->where('activo', 1)->orderBy('id', 'desc')->first();//busca el prestamo pausa
+          if($prpausa->cobrointere == 0)
+          {
+            $interes = 0;
+            $saldoactual = $ultimopago->saldo;
+            $numcuota = 0;
+           }
+           else{
+            if(empty($ultimopago)){// si no hay ultimo pago
+              $saldoactual = $pr->monto;
+              $numcuota = 0;
+            } else{
+              $saldoactual = $ultimopago->saldo + $interes;
+              $numcuota = 0;
+            }
+          }
+          $principal = 0;
+        }
+        if($cont != 0){
+          $pagos[] =  [
+              'prestamo_id' => $pr->id,
+              'numcuota' => $numcuota,
+              //'saldo' => $saldo,
+              'abonoprincipal' => $principal,
+              'saldo' => $saldoactual,
+              'created_at' => $now,
+              'updated_at' => $now,
+            ];
+        }
+
+        if($cuotafinal == 1){
+           $prestamoupdate = Prestamo::find($id);
+           $prestamoupdate->pagado=1; // Pasa a pagado el prestamo
+           $prestamoupdate->activo=0; // pasa a inactivo el prestamo
+           $prestamoupdate->update();
+         }
+       }
+    //    dd($pagos);
+        if(!empty($pagos)){
+        //  dd($pagos);
+          Prestamodetalle::insert($pagos);
+        }
+    }
+
+
 
     /*Prestamo quincenales*/
     //cronprestamoq
@@ -461,6 +574,125 @@ class PrestamoController extends Controller
         $socio = Socio::where('activo', 1)->get();
         return view('prestamos.create',compact('socio', 'cuota2', 'cquincenal', 'comision', 'comisionid'));
     }
+
+    public function createanticipo()
+    {
+
+        $monto = Input::has('monto') ? Input::get('monto') : null;
+        $plazo = Input::has('plazo') ? Input::get('plazo') : null;
+
+        // Validacion de plazo
+        if($plazo > 4){
+          return back()->with('errormsj', 'Error el plazo debe ser menor o igual a 4');
+        }
+
+        $cajachica = Cajachica::where('activo', 1)->orderBy('id', 'desc')->first();
+        $saldo = $cajachica->total;
+
+        if($monto > $saldo){ // comprueba que hay saldo suficiente
+          return back()->with('errormsj', 'Saldo insuficiente');
+        }
+
+
+        $unaquincena = Comision::where('nombre', '1 quincena')->where('activo', 1)->value('id');
+        $unaquincena = Comision::find($unaquincena);
+
+        $dosquincena = Comision::where('nombre', '2 quincena')->where('activo', 1)->value('id');
+        $dosquincena = Comision::find($dosquincena);
+
+        $tresquincena = Comision::where('nombre', '3 quincena')->where('activo', 1)->value('id');
+        $tresquincena = Comision::find($tresquincena);
+
+        $cuatroquincena = Comision::where('nombre', '4 quincena')->where('activo', 1)->value('id');
+        $cuatroquincena = Comision::find($cuatroquincena);
+
+        $comisionid = 0;
+        $unaquincena = $unaquincena->valor / 100;
+        $dosquincena = $dosquincena->valor / 100;
+        $tresquincena = $tresquincena->valor / 100;
+        $cuatroquincena = $cuatroquincena->valor / 100;
+
+       if($plazo == null){
+         $cuota2 = 0; $cquincenal = 0; $comision = 0;
+       } else{
+
+           if($plazo == 1){
+             $comision = $monto * $unaquincena;
+             $cquincenal = 1;
+             $comisionid = 4;
+           }elseif($plazo == 2){
+             $comision = $monto * $dosquincena;
+             $cquincenal = 2;
+             $comisionid = 5;
+           }elseif($plazo == 3){
+             $comision = $monto * $tresquincena;
+             $cquincenal = 3;
+             $comisionid = 6;
+           }elseif($plazo == 4){
+             $comision = $monto * $cuatroquincena;
+             $cquincenal = 4;
+             $comisionid = 7;
+           }
+
+           $cuota2 = ($comision + $monto) / $cquincenal;
+       }
+
+        $socio = Socio::where('activo', 1)->get();
+        return view('prestamos.createanticipo',compact('socio', 'cuota2', 'cquincenal', 'comision', 'comisionid'));
+    }
+
+    public function storeanticipo(Request $request)
+    {
+       $cajachica = Cajachica::where('activo', 1)->orderBy('id', 'desc')->first();
+       $saldo = $cajachica->total;
+
+       if($request->monto > $saldo){ // comprueba que hay saldo suficiente
+         return back()->with('errormsj', 'Saldo insuficiente');
+       }
+
+       $sc = $request->nombresocio;
+       $socio_id = filter_var($sc, FILTER_SANITIZE_NUMBER_INT); //obtiene el id del socio
+
+       //Calcula fecha de Inicio
+           $dia = date('d');
+           $mes = date('m');
+           $año = date('Y');
+           $fechainicio = 0;
+
+           if($dia >= 10 && $dia < 25){ // dia mayor o igual a 10 y menor a 25
+             $dia = 30; // el primer dia sera 30
+           } elseif($dia < 10){ // dia menor a 10
+             $dia = 15; // el primer dia sera 15
+           } elseif($dia>=25 && $mes < 12){ //dia mayor a 25 y mes menor a 12
+             $dia = 15; $mes = $mes + 1;
+           } elseif($dia >=25 && $mes == 12){ // dia mayor a 25 y mes igual a 12
+             $dia = 15; $mes = 1; $año = $año + 1;
+           }
+           if($mes == 2 && $dia == 30){ //si es febrero
+             $dia = 28;
+           }
+           $fechainicio = $año . "-" . $mes . "-" . $dia;
+    //  dd();
+       $anticipo = 1;
+       $request->merge(array('socio_id' => $socio_id));
+       $request->merge(array('fechainicio' => $fechainicio));
+       $request->merge(array('anticipo' => $anticipo));
+
+      // dd($request->all());
+
+       if($prestamo = Prestamo::create($request->all())){
+          $cajachica2 = new Cajachica();
+          $cajachica2->egreso = $request->monto;
+          $cajachica2->total = $saldo - $request->monto;
+          $prestamo->prestamocajachicas()->save($cajachica2);
+          //$cajachica2->save(); // guarda el egreso en caja chica
+
+          return redirect('anticipo')->with('msj', 'Datos guardados');
+       } else {
+          return back()->with('errormsj', 'Los datos no se guardaron');
+       }
+    }
+
 
     /**
      * Store a newly created resource in storage.

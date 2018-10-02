@@ -23,8 +23,9 @@ class AhorrotasaController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
+        $request->user()->authorizeRoles(['Supervisor', 'Root']);
         return view('ahorrotasas.create');
     }
 
@@ -36,7 +37,7 @@ class AhorrotasaController extends Controller
      */
     public function store(Request $request)
     {
-        //dd($request->all());
+        $request->user()->authorizeRoles(['Supervisor', 'Root']);
         $ahorrotasa = Ahorrotasa::create($request->all());
 
         if($ahorrotasa->save()){
@@ -65,7 +66,7 @@ class AhorrotasaController extends Controller
      */
     public function edit($id)
     {
-      
+
     }
 
     /**

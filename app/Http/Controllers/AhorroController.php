@@ -51,9 +51,23 @@ class AhorroController extends Controller
     public function createspecial()
    {
        $socio = Socio::where('activo', 1)->get();
+       $socioo = null;
        $ahorrotasa = Ahorrotasa::where('especial', 1)->get();
-       return view('ahorros.createspecial',compact('socio', 'ahorrotasa'));
+       return view('ahorros.createspecial',compact('socio', 'ahorrotasa', 'socioo'));
    }
+
+   public function createspecialcp($saldochp, $idsocio) // cuenta de ahorro especial que viene desde un cp
+  {
+    //  dd($idsocio);
+      $socioo = Socio::where('id', $idsocio)->select('nombres', 'apellidos', 'id')->first();
+    //dd($socioo);
+    //dd($socioo->nombres);
+    //  dd($socioo->nombres);
+      $ahorrotasa = Ahorrotasa::where('especial', 1)->get();
+      return view('ahorros.createspecial',compact('socioo', 'ahorrotasa', 'saldochp', 'idsocio'));
+  }
+
+
 
    public function createadelanto()
   {
@@ -350,6 +364,7 @@ class AhorroController extends Controller
         $ahorro->depositoinicial = $request->depositoinicial;
         $ahorro->dolar = $request->dolar;
         $ahorro->especial = $request->especial;
+        $ahorro->plazofijo = $request->plazofijo;
         $ahorro->comentario = $request->comentario;
         $ahorro->ahorrotasa_id = $request->ahorrotasa_id;
 

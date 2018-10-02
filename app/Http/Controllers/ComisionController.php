@@ -38,6 +38,7 @@ class ComisionController extends Controller
     {
         //dd($request->all());
         //Pasa la comision con el valor anterior a inactivo
+        $request->user()->authorizeRoles(['Supervisor', 'Root']);
         $comisionant = Comision::find($request->comisionanterior);
         $comisionant->activo = 0;
         $comisionant->update();
@@ -68,8 +69,9 @@ class ComisionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit($id, Request $request)
     {
+        $request->user()->authorizeRoles(['Supervisor', 'Root']);
         $comision = Comision::find($id);
         return view('comisiones.edit')
         ->with(['edit' => true, 'comision' => $comision]);

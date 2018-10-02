@@ -16,6 +16,7 @@ use Lupita\Plazofijotasa;
 use Barryvdh\DomPDF\Facade as PDF;
 use Carbon\Carbon;
 
+
 class PlazofijoController extends Controller
 {
     /**
@@ -156,8 +157,6 @@ class PlazofijoController extends Controller
         $create = Carbon::parse($hoy);
         $create = $create->format('Y-m-d H:i:s');
 
-        //  dd($create);
-
 
         $vencimiento = $request->vencimiento;
 
@@ -202,12 +201,12 @@ class PlazofijoController extends Controller
          $tasainteres = Plazofijotasa::find($idtasa)->value('valor');
 
          $tasaint = $tasainteres /100;
-         dd($tasaint);
+         //dd($tasaint);
 
          $tasaintper =  (1 + $tasaint) ** ($diacp/360)-1; //se calcula la tasa de interes periodica
          $tasanominal = $tasaintper * $frec;  //se calcula la tasa nominal
-         $interesven = number_format($request->monto * $tasa / $diacp * $diacp, 2);  //se calcula el interesven
-         dd($interesven);
+         $interesven = number_format($request->monto * $tasaint / $diacp * $diacp, 2);  //se calcula el interesven
+         //dd($interesven);
         /* fin del nuevo cod. */
 
         // si son 6 meses
@@ -235,8 +234,9 @@ class PlazofijoController extends Controller
       //  $plazofijo->rock_ck = $request->rock_ck;
         $plazofijo->frecpagointere_id = $request->frecpagointere_id;
         $plazofijo->formapagointere_id = $request->formapagointere_id;
+        $plazofijo->creado = $hoy;
 
-        dd($plazofijo);
+      //  dd($plazofijo);
 
         $plazofijo->save();
 
@@ -313,7 +313,28 @@ class PlazofijoController extends Controller
 
     /** Terminar Certificado de plazo fijo antes del vencimiento **/
 
-    public function finalizebefore($id){
+    public function finalizebefored($id, $fopcion = null){
+
+       $fopcion = Input::has('fopcion') ? Input::get('fopcion') : null;
+       if($fopcion != null){
+      //   dd($fopcion);
+      //   dd($id);
+      //  if($fopcion == 1){ //retirar todo y penalizacion
+        return redirect()->action('PlazofijoController@finalizebefore',compact('id', 'fopcion'));
+      /*  return redirect()->action('PlazofijoController@finalizebefore')
+        ->with(['id' => $id, 'fopcion' => $fopcion]);*/
+      //  } else{
+  //        return redirect()->action('PlazofijoController@finalizebefore',compact('id', 'fopcion'));
+      //  }
+
+      }
+      return view('plazofijos.finalizebefored',compact('id'));
+    }
+
+    /** Terminar Certificado de plazo fijo antes del vencimiento **/
+
+    public function finalizebefore($id, $fopcion){
+      //dd($fopcion);
       $nominal = Input::has('nominal') ? Input::get('nominal') : null;
       $interes = 0;
 
@@ -343,14 +364,21 @@ class PlazofijoController extends Controller
 
       $retencion = number_format($intereses * 10 /100, 2);
 
-      $total = $intereses - $retencion;
+      //dd($plazof);
 
-      if($plazof->activo == 1){
+      $total = ($intereses - $retencion) + $plazof->monto;
+
+      if($plazof->activo == 1 && $fopcion == 1){
         return view('plazofijos.finalizebefore',compact('nominal', 'plazof', 'cantdia', 'intereses', 'retencion', 'numero', 'total'));
+      } elseif($plazof->activo == 1 && $fopcion == 0) {
+        return view('plazofijos.finalizebeforespecial',compact('nominal', 'plazof', 'cantdia', 'intereses', 'retencion', 'numero', 'total'));
       } else {
          abort(404);
       }
     }
+
+
+
 
     /* Funcion para indicar que se emitio un cheque, marcar como pagado */
     public function payck($id) {
@@ -402,9 +430,40 @@ class PlazofijoController extends Controller
      */
     public function update(Request $request, $id)
     {
+      if($request->cantretiro != null){ //finalizacion de cp especial
+        $total = $request->total;
+        $validatedData = $request->validate([
+          'cantretiro' => 'required|numeric|max:'.$total,
+        ],
+
+        [
+           'cantretiro.required' => 'El campo cantidad a retirar es requerido',
+           'cantretiro.numeric' => 'solo se permiten numeros',
+           'cantretiro.max' => 'la cantidad a retirar debe ser menor que el total',
+        ]
+       );
+
+       $total = $request->cantretiro;
+       $saldochp = $request->total - $request->cantretiro; // saldo que va a una cuenta de ahorro especial
+       $plazof = Plazofijo::find($id);
+       $idsocio = $plazof->socio_id;
+       $request->merge(array('total' => $total));
+     } else { // finalizacion de cp completo
+
+       if($request->valorpenalidad != null || $request->valorpenalidad != 0){ //si hay penalidad
+         $total = $request->total = $request->total - $request->valorpenalidad;
+         $request->merge(array('penalidad' => 1));
+         $request->merge(array('total' => $total));
+       }
+
+
+     }
+
+    //  dd($id);
       //  $plazofijodetalle = new Plazofijodetalle();
         $request->merge(array('plazofijo_id' => $id));
         $request->merge(array('pagado' => 1));
+
         $plazofijodetalle = Plazofijodetalle::create($request->all()); // guarda el plazo fijo detalle
 
         $hoy = date('Y-m-d'); //fecha de hoy
@@ -441,7 +500,11 @@ class PlazofijoController extends Controller
         $plazofijo->activo = 0;
         $plazofijo->update(); // se actualiza con los valores que se han modificado
 
-        return redirect()->to("plazofijo")->with('msj', 'Datos actualizados');
+        if($request->cantretiro != null){ // se redirige a crear una cuenta de ahorro especial
+          return redirect()->action('AhorroController@createspecialcp',compact('saldochp', 'idsocio'));
+        }else{
+         return redirect()->to("plazofijo")->with('msj', 'Datos actualizados');
+       }
     }
 
     /**

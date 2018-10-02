@@ -12,7 +12,7 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('home');
 })->middleware('auth');
 
 Auth::routes();
@@ -97,10 +97,15 @@ Route::get('/carteraemp', 'PrestamoController@carteraemp')->name('carteraemp')->
 Route::put('carteraempcon',array('as'=>'carteraempcon','uses'=>'PrestamoController@carteraempcon'))->middleware('auth');
 Route::get('/repcartera', 'PrestamoController@repcartera')->name('repcartera')->middleware('auth');
 
+
 //Prestamos
 Route::group(['middleware' => 'auth'], function() {
     Route::resource('/prestamos', 'PrestamoController')->middleware('auth');
 });
+Route::get('/createanticipo', 'PrestamoController@createanticipo')->name('createanticipo')->middleware('auth');
+Route::get('/anticipo', 'PrestamoController@anticipoindex')->name('anticipo')->middleware('auth');
+Route::post('/anticipoadd', array('as' => 'anticipoadd',
+    'uses' => 'PrestamoController@storeanticipo'))->middleware('auth');
 Route::get('/prestamos/{prestamo_id}/pausa', 'PrestamoController@pausa')->middleware('auth');
 Route::put('/prestamos/{prestamo_id}/pausar', 'PrestamoController@pausar')->name('prestamos.pausar')->middleware('auth');
 Route::put('/prestamos/{prestamo_id}/continuar', 'PrestamoController@continuar')->name('prestamos.continuar')->middleware('auth');
@@ -131,6 +136,14 @@ Route::group(['middleware' => 'auth'], function() {
     Route::resource('/comisionadd', 'ComisionController')->middleware('auth');
 });
 
+//Caja chica
+Route::group(['middleware' => 'auth'], function() {
+    Route::resource('/cajachica', 'CajachicaController')->middleware('auth');
+});
+Route::group(['middleware' => 'auth'], function() {
+    Route::resource('/cajachicaadd', 'CajachicaController')->middleware('auth');
+});
+
 //Miembros del Consejo
 Route::group(['middleware' => 'auth'], function() {
     Route::resource('/mconsejo', 'CooperativaController')->middleware('auth');
@@ -148,6 +161,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::resource('/movimientoadd', 'AhorrodetalleController')->middleware('auth');
 });
 Route::get('/ahorrocreatespecial', 'AhorroController@createspecial')->name('ahorros.createspecial')->middleware('auth');
+Route::get('/ahorrocreatespecialcp/{saldochp}/{idsocio}/', 'AhorroController@createspecialcp')->name('ahorros.createspecialcp')->middleware('auth');
 Route::get('/ahorrocreateadelanto', 'AhorroController@createadelanto')->name('ahorros.createadelanto')->middleware('auth');
 Route::put('/ahorros/{ahorro_id}/pausar', 'AhorroController@pausar')->name('ahorros.pausar')->middleware('auth');
 Route::put('/ahorros/{ahorro_id}/continuar', 'AhorroController@continuar')->name('ahorros.continuar')->middleware('auth');
@@ -162,7 +176,9 @@ Route::group(['middleware' => 'auth'], function() {
     Route::resource('/plazofijoadd', 'PlazofijoController')->middleware('auth');
 });
 Route::put('/plazofijo/{plazofijo_id}/repplazofijo', 'PlazofijoController@repplazofijo')->name('plazofijo.repplazofijo')->middleware('auth');
-Route::get('/plazofijo/{plazofijo_id}/finalizebefore', 'PlazofijoController@finalizebefore')->name('plazofijo.finalizebefore')->middleware('auth');
+Route::get('/plazofijo/{plazofijo_id}/{fopcion}/finalizebefore', 'PlazofijoController@finalizebefore')->name('plazofijo.finalizebefore')->middleware('auth');
+Route::get('/plazofijo/{plazofijo_id}/{fopcion}/finalizebeforespecial', 'PlazofijoController@finalizebefore')->name('plazofijo.finalizebeforespecial')->middleware('auth');
+Route::get('/plazofijo/{plazofijo_id}/finalizebefored', 'PlazofijoController@finalizebefored')->name('plazofijo.finalizebefored')->middleware('auth');
 Route::get('/plazoinactivo', 'PlazofijoController@inactivo')->name('plazofijo.inactivo')->middleware('auth');
 Route::get('/plazofijo/{plazofijodet_id}/payck', 'PlazofijoController@payck')->name('plazofijo.payck')->middleware('auth');
 Route::put('/plazofijo/{plazofijodet_id}/savepayck', 'PlazofijoController@savepayck')->name('plazofijo.savepayck')->middleware('auth');

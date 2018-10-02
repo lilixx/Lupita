@@ -15,6 +15,7 @@ class RoleTableSeeder extends Seeder
          array('nombre' => 'Admin'),
          array('nombre' => 'Supervisor'),
          array('nombre' => 'Usuario'),
+         array('nombre' => 'Root'),
       ));
     }
 }

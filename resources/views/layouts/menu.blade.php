@@ -48,6 +48,14 @@
         <li class="subm"><i class="fa fa-percent float-right"></i>Comisión</li></a>
      </ul>
 
+     <a class ="m3" href="<?php echo  url('/');?>/anticipo">
+       <li class="animate">
+          Adelanto de Salario<i class="fas fa-external-link-alt float-right"></i>
+       </li>
+     </a>
+
+
+
      <a class ="m6" href="<?php echo  url('/');?>/ahorros">
        <li class="animate">
           Ahorros<i class="fab fa-bitbucket float-right"></i>
@@ -66,6 +74,12 @@
      <ul><a class="m7" href="<?php echo  url('/');?>/plazoinactivo">
         <li class="subm"><i class="far fa-calendar-times float-right"></i>Inactivos</li></a>
      </ul>
+
+     <a class ="m7" href="<?php echo  url('/');?>/cajachica">
+       <li class="animate">
+          Caja Chica<i class="fas fa-briefcase float-right"></i>
+       </li>
+     </a>
 
      <a class ="m2" href="<?php echo  url('/');?>/reportes">
        <li class="animate">

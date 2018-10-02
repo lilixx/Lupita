@@ -20,6 +20,17 @@
   {{ csrf_field() }}
 
 
+  @if (count($errors) > 0)
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+
   <div class="col-lg-6">
     <div class="form-group">
       <label for="titulo" class="col-sm-4 control-label">Monto</label>
@@ -58,7 +69,7 @@
 
   <div class="col-lg-6">
     <div class="form-group">
-      <label for="titulo" class="col-sm-4 control-label">Total(sin penalidad)</label>
+      <label for="titulo" class="col-sm-4 control-label">Total</label>
       <div class="col-sm-8">
         <input type="text" class="form-control" name="total" value="{{$total}}" readonly>
       </div>
@@ -67,12 +78,13 @@
 
   <div class="col-lg-6">
     <div class="form-group">
-      <label for="titulo" class="col-sm-4 control-label">Penalidad</label>
+      <label for="titulo" class="col-sm-4 control-label">Cantidad a retirar</label>
       <div class="col-sm-8">
-          <input type="text" class="form-control" name="valorpenalidad"  placeholder="Ingrese la penalidad">
+        <input type="text" class="form-control" name="cantretiro" required>
       </div>
     </div>
   </div>
+
 
   <div class="col-lg-6">
     <div class="form-group">

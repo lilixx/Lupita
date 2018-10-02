@@ -19,7 +19,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $request->user()->authorizeRoles(['Admin']);
+        $request->user()->authorizeRoles(['Admin', 'Root']);
         $usuario = User::where('activo', 1)->get();
         return view('users.users',compact('usuario'));
     }
@@ -31,7 +31,7 @@ class UserController extends Controller
      */
     public function create(Request $request)
     {
-        $request->user()->authorizeRoles(['Admin']);
+        $request->user()->authorizeRoles(['Admin', 'Root']);
         $rol = Role::where(function($query){
           $query->where('nombre', '<>', 'Huesped')
                 ->Where('nombre', '<>', 'Cliente');
@@ -47,7 +47,7 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //dd($request->all()); 
+        //dd($request->all());
         $this->validator($request->all())->validate();
         $user = User::create([
             'name' => $request['name'],
@@ -90,7 +90,7 @@ class UserController extends Controller
      */
     public function show($id, Request $request )
     {
-        $request->user()->authorizeRoles(['Admin', 'Recepcionista']);
+        $request->user()->authorizeRoles(['Admin', 'Root']);
         $id = Auth::id();
         $user = User::find($id);
         //dd($user);
@@ -106,7 +106,7 @@ class UserController extends Controller
 
      public function edit($id, Request $request)
      {
-         $request->user()->authorizeRoles(['Admin']);
+         $request->user()->authorizeRoles(['Admin', 'Root']);
          $user = User::find($id);
          $rol = Role::where(function($query){
            $query->where('nombre', '<>', 'Huesped')
@@ -118,7 +118,7 @@ class UserController extends Controller
 
     public function editprofile($id, Request $request)
     {
-        $request->user()->authorizeRoles(['Admin', 'Recepcionista']);
+        $request->user()->authorizeRoles(['Admin', 'Root']);
         $id = Auth::id();
         $user = User::find($id);
         return view('users.editprofile')
@@ -134,7 +134,7 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $request->user()->authorizeRoles(['Admin']);
+        $request->user()->authorizeRoles(['Admin', 'Root']);
         $this->validator2($request->all())->validate();
         $user = User::find($id);
         $user->name = $request->name;
@@ -156,7 +156,7 @@ class UserController extends Controller
 
     public function updateprofile(Request $request, $id)
     {
-        $request->user()->authorizeRoles(['Admin', 'Recepcionista']);
+        $request->user()->authorizeRoles(['Admin', 'Root']);
         $this->validator($request->all())->validate();
         $id = Auth::id();
         $user = User::find($id);
@@ -176,7 +176,7 @@ class UserController extends Controller
 
     public function out(Request $request, $id)
     {
-        $request->user()->authorizeRoles(['Admin']);
+        $request->user()->authorizeRoles(['Admin', 'Root']);
         $user = User::find($id);
         $user->activo = 0;
 

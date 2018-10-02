@@ -4,6 +4,7 @@ namespace Lupita\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Lupita\Cooperativa;
+use Illuminate\Support\Facades\Auth;
 
 class CooperativaController extends Controller
 {
@@ -56,8 +57,9 @@ class CooperativaController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit($id, Request $request)
     {
+        $request->user()->authorizeRoles(['Supervisor', 'Root']);
         $consejo = Cooperativa::find($id);
         return view('mconsejos.edit')
         ->with(['edit' => true, 'consejo' => $consejo]);

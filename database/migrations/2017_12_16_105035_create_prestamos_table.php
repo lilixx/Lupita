@@ -22,9 +22,9 @@ class CreatePrestamosTable extends Migration
             $table->integer('comision_id')->nullable()->unsigned();
             $table->foreign('comision_id')->references('id')->on('comisions');
             $table->string('parentescof', 50)->nullable();
-            $table->float('intereses');
+            $table->float('intereses')->nullable();
             $table->float('monto');
-            $table->integer('plazo')->unsigned();
+            $table->integer('plazo')->nullable()->unsigned();
             $table->float('cuota');
             $table->string('num_cheque', 40)->nullable();
             $table->integer('cantcuotas')->unsigned();
@@ -35,6 +35,7 @@ class CreatePrestamosTable extends Migration
             $table->boolean('resumen')->default(0);
             $table->boolean('pagado')->default(0);
             $table->boolean('pausa')->default(0);
+            $table->boolean('anticipo')->default(0);
             $table->boolean('activo')->default(1);
             $table->timestamps();
         });

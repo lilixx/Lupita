@@ -74,16 +74,35 @@ class DeudaempresaController extends Controller
       $prestamodetalle = Prestamodetalle::where('created_at', 'like', $today2)->get(); //obtiene los pagos de prestamo que se hicieron hoy
       //dd($prestamodetalle);
       foreach($prestamodetalle as $pd){
-        $idp = $pd->id;
-        $empresaid =  $pd->prestamo->socio->empresa->id;
-          $deudaemp[] =  [
-            'empresa_id' => $empresaid,
-            'afiliaciondetalle_id' => null,
-            'prestamodetalle_id' => $idp,
-            'ahorrodetalle_id' => null,
-            'created_at' => $now,
-            'updated_at' => $now,
-          ];
+        if($pd->prestamo->anticipo == 0){
+          $idp = $pd->id;
+          $empresaid =  $pd->prestamo->socio->empresa->id;
+            $deudaemp[] =  [
+              'empresa_id' => $empresaid,
+              'afiliaciondetalle_id' => null,
+              'prestamodetalle_id' => $idp,
+              'ahorrodetalle_id' => null,
+              'created_at' => $now,
+              'updated_at' => $now,
+            ];
+        }
+      }
+
+      //Deuda anticipo
+      $ahorrodetalle = Prestamodetalle::where('created_at', 'like', $today)->get();
+      foreach($prestamodetalle as $pant){
+        if($pd->prestamo->anticipo == 1){
+          $idp = $pant->id;
+          $empresaid =  $pant->prestamo->socio->empresa->id;
+            $deudaemp[] =  [
+              'empresa_id' => $empresaid,
+              'afiliaciondetalle_id' => null,
+              'prestamodetalle_id' => $idp,
+              'ahorrodetalle_id' => null,
+              'created_at' => $now,
+              'updated_at' => $now,
+            ];
+        }
       }
 
       //Deuda ahorro

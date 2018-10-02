@@ -19,7 +19,7 @@
     <div class="alert alert-info" role="alert">{{ session('msj') }}</div>
   @endif
   @if(session()->has('errormsj'))
-    <div class="alert alert-danger" role="alert">Error, al guardar los datos</div>
+    <div class="alert alert-danger" role="alert">{{ session()->get('errormsj') }}</div>
   @endif
 
 <form class="form-horizontal" role="form" method="POST" action="{{ url('sociosadd') }}" enctype="multipart/form-data">

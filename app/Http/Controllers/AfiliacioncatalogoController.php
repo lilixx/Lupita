@@ -23,8 +23,9 @@ class AfiliacioncatalogoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
+      $request->user()->authorizeRoles(['Supervisor', 'Root']);
       return view('afiliacioncatalogos.create');
     }
 
@@ -36,6 +37,7 @@ class AfiliacioncatalogoController extends Controller
      */
     public function store(Request $request)
     {
+        $request->user()->authorizeRoles(['Supervisor', 'Root']);
         $afcat = Afiliacioncatalogo::create($request->all());
         if($afcat->save()){
            return redirect('afiliacioncat')->with('msj', 'Datos guardados');

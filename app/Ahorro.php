@@ -8,7 +8,7 @@ class Ahorro extends Model
 {
     protected $fillable = [
         'socio_id', 'fechainicio', 'depositoinicial', 'dolar', 'dia15',
-        'dia30', 'pausada', 'comentario', 'ahorrotasa_id', 'especial',
+        'dia30', 'pausada', 'comentario', 'ahorrotasa_id', 'especial', 'plazofijo',
     ];
 
     public function socio()

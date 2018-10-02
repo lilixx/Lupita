@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateComisionsTable extends Migration
+class CreateCajachicasTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,10 @@ class CreateComisionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('comisions', function (Blueprint $table) {
+        Schema::create('cajachicas', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('nombre', 10);
-            $table->float('valor');
-            $table->boolean('anticipo')->default(0);
+            $table->float('ingreso');
+            $table->float('egreso');
             $table->boolean('activo')->default(1);
             $table->timestamps();
         });
@@ -30,6 +29,6 @@ class CreateComisionsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('comisions');
+        Schema::dropIfExists('cajachicas');
     }
 }

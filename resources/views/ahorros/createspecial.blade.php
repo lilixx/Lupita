@@ -54,7 +54,7 @@
 
       <div class="content_1">
 
-
+      @if($socioo == null)
           <div class="col-lg-12">
             <div class="form-group">
               <label for="titulo" class="col-sm-2 control-label">Nombre del Socio</label>
@@ -63,8 +63,19 @@
                  </div>
                </div>
              </div>
+       @else
+         <div class="col-lg-6">
+           <div class="form-group">
+             <label for="titulo" class="col-sm-4 control-label">Nombre del Socio</label>
+             <div class="col-sm-8">
+               <input type="text" class="form-control" name="nombresocio" value="{{$socioo->nombres}} {{$socioo->apellidos}} (cod.{{$socioo->id}})" readonly>
+             </div>
+           </div>
+         </div>
 
-            <input type="hidden" name="especial" value="1"> 
+       @endif
+
+            <input type="hidden" name="especial" value="1">
 
 
            <div class="col-lg-6">
@@ -146,14 +157,30 @@
         </div>
       </div>
 
+      <input type="hidden" name="plazofijo" value="0">
+
+
+     @if($socioo == null)
+        <div class="col-lg-6">
+          <div class="form-group">
+            <label for="titulo" class="col-sm-4 control-label">Deposito Inicial($)</label>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" name="depositoinicial"  placeholder="Deposito inicial">
+            </div>
+          </div>
+        </div>
+    @else
       <div class="col-lg-6">
         <div class="form-group">
           <label for="titulo" class="col-sm-4 control-label">Deposito Inicial($)</label>
           <div class="col-sm-8">
-            <input type="text" class="form-control" name="depositoinicial"  placeholder="Deposito inicial">
+            <input type="text" class="form-control" name="depositoinicial" value="{{$saldochp}}" readonly>
           </div>
         </div>
       </div>
+      <input type="hidden" name="plazofijo" value="1">
+    @endif
+
 
       <div class="col-lg-6">
         <div class="form-group">

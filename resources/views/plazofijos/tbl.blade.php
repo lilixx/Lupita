@@ -61,7 +61,7 @@
               @endforeach
             @endif
 
-             <a href="plazofijo/{{ $n->id }}/finalizebefore" class="btn btn-orange" title="Finalizar antes CPF">
+             <a href="plazofijo/{{ $n->id }}/finalizebefored" class="btn btn-orange" title="Finalizar antes CPF">
              <span class="fas fa-cut" aria-hidden="true"></span></a>
 
 

@@ -48,15 +48,18 @@ class SocioController extends Controller
        $ahorro = Ahorro::where('socio_id', '=', $id)->get();
 
        //Pretamo
-       $prestamo = Prestamo::where('socio_id', '=', $id)->get();
+       $prestamo = Prestamo::where('socio_id', '=', $id)->where('anticipo', '=', 0)->get();
 
        //Plazo fijos
 
        $plazofijo = Plazofijo::where('socio_id', '=', $id)->get();
 
+       //Pretamo
+       $anticipo = Prestamo::where('socio_id', '=', $id)->where('anticipo', '=', 1)->get();
+
        //afiliacion - deuda
 
-       return view('socios.consultsocio',compact('ahorro', 'prestamo', 'plazofijo', 'socio'));
+       return view('socios.consultsocio',compact('ahorro', 'prestamo', 'plazofijo', 'socio', 'anticipo'));
 
     }
 

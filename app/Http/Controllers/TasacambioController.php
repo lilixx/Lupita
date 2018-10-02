@@ -23,8 +23,9 @@ class TasacambioController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
+        $request->user()->authorizeRoles(['Supervisor', 'Root']);
         return view('tasacambios.create');
     }
 
@@ -42,6 +43,7 @@ class TasacambioController extends Controller
      */
     public function store(Request $request)
     {
+         $request->user()->authorizeRoles(['Supervisor', 'Root']);
         /*Validacion*/
         $validatedData = $request->validate([
             'valor' => 'required',

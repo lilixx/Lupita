@@ -22,7 +22,7 @@
   <input name="_method" type="hidden" value="PUT">
    {{ csrf_field() }}
 
-<h1 class="titulo pais"> Movimientos del Prestamo </h1>
+<h1 class="titulo pais"> Movimientos del @if ($prestamo->anticipo == 0) Prestamo @else Anticipo @endif </h1>
 
 <h2>Socio: {{$prestamo->socio->nombres}} {{$prestamo->socio->apellidos}}</h2>
 
@@ -31,7 +31,7 @@
   <tr>
     <th class="tg-e3zv" rowspan="2">No de Cuota</th>
     <th class="tg-e3zv" rowspan="2">Cuota</th>
-    <th class="tg-e3zv" rowspan="2">Intereses</th>
+    @if ($prestamo->anticipo == 0) <th class="tg-e3zv" rowspan="2">Intereses</th> @endif
     <th class="tg-e3zv" rowspan="2">Abono<br>Principal</th>
     <th class="tg-e3zv" rowspan="2">Saldo</th>
     <th class="tg-amwm" colspan="3">Fecha de Pago</th>
@@ -46,7 +46,7 @@
   <tr>
     <td class="tg-yw4l">{{$m->numcuota}}</td>
     <td class="tg-yw4l">${{$m->prestamo->cuota}}</td>
-    <td class="tg-yw4l">${{$m->intereses}}</td>
+  @if ($prestamo->anticipo == 0)  <td class="tg-yw4l">${{$m->intereses}}</td> @endif
     <td class="tg-yw4l">${{$m->abonoprincipal}}</td>
     <td class="tg-yw4l">${{$m->saldo}}</td>
     <td class="tg-baqh">{{ $m->created_at->format('d') }}</td>
